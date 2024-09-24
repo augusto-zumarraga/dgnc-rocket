@@ -1,0 +1,166 @@
+\ProvidesPackage{dgnc}
+
+\usepackage[latin1]{inputenc} 
+\usepackage[spanish]{babel} 
+\selectlanguage{spanish} 
+\usepackage{ifthen}
+\usepackage[dvipsnames]{xcolor}
+
+\usepackage{xargs} 
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+
+% gráficos
+\usepackage{graphicx}
+\usepackage{wrapfig}
+
+% fuente 
+\usepackage[scaled]{helvet}
+\renewcommand\familydefault{\sfdefault} 
+
+% underline
+\usepackage[normalem]{ulem}
+\usepackage{hyphenat}               % para prevenir separación con \nohyphens{}
+
+% math
+\usepackage{amsmath}				% \dfrac y \tfrac entre otros
+\usepackage{mathtools}              % para \phantom{-}
+\usepackage{amssymb}
+\usepackage{mathrsfs}
+\usepackage{empheq}
+\usepackage{xfrac} 					% por \sfrac
+\usepackage{subcaption}
+\usepackage[export]{adjustbox}		% 'export' allows adjustbox keys in \includegraphics
+\usepackage{listings}               % para listar código
+
+\input{dgnc_lst.sty}
+
+% vectores en las ecuaciones en negritas
+\input{math.sty}
+
+% cajas amplias para ecuaciones
+\newcommand*\widefbox[1]{\fbox{\hspace{2em}#1\hspace{2em}}}
+%\setlength{\fboxhsep}{5\fboxsep}
+%\setlength{\fboxvsep}{20\fboxsep}
+
+% pdf
+\usepackage[hidelinks]{hyperref}
+
+% para colorear párrafos
+\usepackage{framed}
+\colorlet{shadecolor}{gray!20}
+
+% para colorear en tablas
+\usepackage{color, colortbl}
+
+% para formatear celdas en tablas
+%\usepackage{tabularx}
+\usepackage{mdwtab,tabularx}
+\usepackage[figuresright]{rotating}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+%\usepackage{setspace}
+%\usepackage{cellspace}
+%\setlength\cellspacetoplimit{5pt}
+%\setlength\cellspacebottomlimit{5pt}
+
+
+
+% para add margin
+\usepackage{scrextend}
+
+%___________________________________________  layout
+\usepackage{enumitem} 					% para {itemize}
+\usepackage[textwidth=15cm]{geometry}
+
+% formato de párrafos
+\leftskip=2cm
+\setlength{\parindent}{0cm} 			% Default is 15pt.
+\raggedbottom							% para que no se intente justificar verticalmente 
+%\setlength{\parskip}{1em}
+\pretolerance=2000				        % para controlar las "overfull" lines
+
+
+
+%___________________________________________ formato de capítulos
+\usepackage{titlesec}					% formato de títulos
+\usepackage{tikz}						% produce portable graphics in both PDF and PostScript formats using either plain (pdf)TEX, (pdf)Latex or ConTEXt
+\usetikzlibrary{mindmap,backgrounds}
+\colorlet{col1}{darkgray}				% Part I color
+\colorlet{col2}{olive}          		% Part II
+\colorlet{col3}{orange}      			% Part III
+
+\newcommand{\clrg}[1]{\textcolor{PineGreen}{#1}}
+\newcommand{\clrb}[1]{\textcolor{blue}{#1}}
+\newcommand{\clrr}[1]{\textcolor{red}{#1}}
+\newcommand{\gray}[1]{\textcolor{gray}{#1}}
+
+% local chapter commands
+\newcommand{\chapterprelude}[1]{%
+\textsf{#1}
+\par\noindent
+\rule{\textwidth}{0.4pt}
+}
+\newcommand{\hard}{$^\star$\xspace}
+
+\newcommand{\chaptitle}[1]{%
+\begin{tikzpicture}
+  \node[fill=col1!20,inner sep=10pt,text width=\dimexpr\linewidth-12pt\relax,align=right] {\textcolor{white}{#1}};
+\end{tikzpicture}
+}
+
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries\sffamily}{\scalebox{3}{\thechapter}}{25pt}{\Huge\chaptitle}
+\titlespacing*{\chapter} {0pt}{110pt}{20pt}
+
+\newsavebox{\mybox}
+
+%___________________________________________ formato de secciones
+\titleformat{\section}
+  {\sectionrule\Large\bfseries}
+  % {\thesection}  
+  % {1em}
+  {}		% suprimir los números en las secciones
+  {0em}		% suprimir espacio a la izquierda
+  {}
+
+% this command is executed at each \section command
+\newcommand{\sectionrule}{%
+  % no rule before the first section
+  \ifnum\value{section}=0
+  \else
+    % otherwise, ensure being between paragraphs
+    \par
+    % add some vertical space
+    \addvspace{\bigskipamount}
+    % the rule realized as leaders, so it disappears at a page break
+    % see also http://tex.stackexchange.com/a/61643/4427
+    \leaders\vrule width \textwidth\vskip0.4pt
+    % some other vertical space
+    \medskip
+  \fi
+}  
+
+%___________________________________________ formato de sub-sub-secciones
+\titlespacing{\subsubsection}{1cm}{12pt plus 4pt minus 2pt}{4pt plus 2pt minus 2pt}
+
+
+%___________________________________________ pie y cabecera de páginas
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhead{}			% clear all header fields
+\fancyfoot{}			% clear all footer fields
+\fancyfoot[RE,LO]{\small{pág.\thepage}}
+\fancyfoot[RO,LE]{\includegraphics[width=8cm]{dgnc}}
+\setlength{\footskip}{3cm} 
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\fancypagestyle{cover}{
+\fancyhead{}  
+\fancyfoot{} 
+\fancyfoot[L]{\includegraphics[width=12cm]{dgnc}}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+
+%___________________________________________ título de figuras
+\captionsetup[figure]{font=footnotesize}

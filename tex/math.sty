@@ -1,0 +1,21 @@
+\usepackage{booktabs} % para particionar matrices con \midrule 
+% vectores en las ecuaciones en negritas
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+% vectores en las ecuaciones en negritas
+\newcommand{\mtx}[1]{\boldsymbol{\mathrm{#1}}}
+% vectores fila en las ecuaciones en negritas
+\newcommand{\row}[1]{\boldsymbol{#1}}
+% vectores columna en las ecuaciones en negritas
+\newcommand{\col}[1]{\boldsymbol{#1}}
+% norma n: \norm{n}{...} , para norma genérica \norm{{}}{...} 
+\newcommand{\norm}[2]{\left\lVert#2\right\rVert_#1}
+\newcommand{\norma}[1]{\left\lVert#1\right\rVert}
+% para números complejos
+\newcommand{\real}[1]{\mathbb{R}e\left\lbrace {#1} \right\rbrace}
+\newcommand{\imag}[1]{\mathbb{I}m\left\lbrace {#1} \right\rbrace}
+% \sabs{p}{x} -> |x|^{p} sign(x)
+\newcommand{\sabs}[2]{\lfloor{#2}\rceil^{#1}}
+
+% para expresiones que se simplifican
+\newcommand\hcancel[2][black]{\setbox0=\hbox{$#2$}%
+\rlap{\raisebox{.45\ht0}{\textcolor{#1}{\rule{\wd0}{1pt}}}}#2} 

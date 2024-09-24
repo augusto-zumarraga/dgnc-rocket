@@ -1,0 +1,41 @@
+\documentclass[rocket.tex]{subfiles}
+
+\begin{document}
+
+\subsection{Navegación}
+
+Las ecuaciones de navegación son no-lineales, por lo cual se propone una integración numérica por Runke-Kutta de orden 4.
+
+
+%Utilizamos la ecuación \eqref{ecu:tray_v_dot} para los cambios en la velocidad, pero para la senda de ascenso $\gamma$ debemos agregar la la fuerza normal a la \eqref{ecu:tray_gamma_dot} cuando $\alpha \neq 0$.
+%Para el ángulo de ataque se tiene que:
+%\begin{equation*} 
+%	\alpha = \sin^{-1} \frac{w^b}{V} \approx \frac{w^b}{V}
+%\end{equation*}
+%y para el ángulo de la velocidad:
+%\begin{equation*} 
+%	\gamma = \theta - \alpha 
+%\end{equation*}
+%con lo cual
+%\begin{equation*} 
+%	\dot{\gamma} = \dot{\theta} - \dot{\alpha} 
+%	%           \\&= q - \frac{\partial \alpha}{\partial w} \dot{w} - \frac{\partial \alpha}{\partial V}\dot{V}
+%	           = q - \frac{1}{V} \dot{w} + \frac{w}{V^2}\dot{V}
+%\end{equation*}
+%Y como $w = V \sin \theta$:
+%\begin{equation*} 
+%	\dot{\gamma} = q - \frac{1}{V} \left(\dot{w} - \dot{V} \sin \theta \right)
+%\end{equation*}
+%De la suma de fuerzas en $z^b$ tenemos que:
+%\begin{equation*} 
+%	\dot{w} = g \cos \theta - f_N \sin \alpha
+%\end{equation*}
+%con lo cual finalmente:
+%\begin{equation*} 
+%	\dot{\gamma} = q - \frac{1}{V} \left(g \cos \theta - f_N \sin \alpha - \dot{V} \sin \theta \right)
+%\end{equation*}
+
+
+%donde $w$ es la componente vertical de la velocidad (con eje $z^e$ apuntando hacia abajo)
+
+\end{document}

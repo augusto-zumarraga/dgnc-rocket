@@ -1,0 +1,278 @@
+\documentclass[rocket.tex]{subfiles}
+
+\begin{document}
+
+Planteamos los mismos concepto utilizados en la sección \ref{ssec:avion-elastico}.
+Solo consideramos deformaciones a flexión del fuselaje.
+
+\paragraph{Modelo aerodinámico}
+
+
+Para incluir la contribución viscosa podríamos linealizar el término cuadrático en \eqref{ecu:slender-body} para un valor no nulo de ángulo de ataque.
+Así:
+\begin{equation*} 
+	c_N(x) = S'(x) + D\, c_D \sin \alpha_0   
+\end{equation*}
+
+\paragraph{Modos Asumidos}
+
+Si solo consideramos una única forma modal para flexión pura del fuselaje, en una \emph{sección} ubicada a una distancia $x$ de la nariz existirá una deformación en la dirección del eje $z^b$ dada por $z_e(x) = \phi(x) \eta$, donde $\phi(x)$ es la forma modal correspondiente.
+Por lo tanto:
+\begin{equation*} 
+	\dot{z}_e(x) = \phi(x) \dot{\eta}
+\end{equation*}
+
+\paragraph{Trabajo virtual}
+
+Para obtener las fuerzas generalizadas $\vect{Q}_r$ y $\vect{Q}_e$ del modelo general \eqref{ecu:aeroelastic-model} debemos encontrar el trabajo virtual de la fuerza normal. 
+Los desplazamientos virtuales que generaran este trabajo serían $\delta z$ y $\delta \eta$, siendo $z$ es el desplazamiento en \textit{z} como cuerpo rígido.
+En cada sección habrá un aporte adicional por su distancia respecto del centro gravedad $x \cdot \delta \theta$.
+\bigskip
+
+El trabajo virtual de la fuerza aerodinámica por el movimiento de cuerpo rígido respecto de los desplazamientos virtuales $\delta z$ y $\delta \theta$ está incluido en el modelo correspondiente.
+De esta parte solo necesitamos evaluar el trabajo por una deformación virtual $\delta \eta$.
+
+Teniendo en cuenta que $z_e$ es positivo en dirección opuesta a la sustentación:
+\begin{align}\label{ecu:rocket-aeroelastic-WNr}
+	\delta W_{N_r} &= 2 \frac{\sigma_0}{V_0}\left\{ 
+	\left[\int_0^{L} c_N(x)\,\phi(x)\,x\, dx \right] q -
+	\left[\int_0^{L} c_N(x)\,\phi(x)   \, dx \right] w
+	\right\}
+	\\ &= \rho_0 V_0 \left(I_\theta\, q - I_z w\right)\, \delta \eta
+	\nonumber 
+\end{align}
+donde:
+\begin{align*}
+	I_z      &= \int_0^{L} c_N(x)\, \phi(x)  \, dx \\
+	I_\theta &= \int_0^{L} c_N(x)\, \phi(x)  \, x\, dx          
+\end{align*} 
+
+Por otra parte, el trabajo virtual de fuerza aerodinámica por deformación elástica resulta:
+\begin{align}\label{ecu:rocket-aeroelastic-WNe}
+	\delta W_{N_e} &= 2 \frac{\sigma_0}{V_0} \dot{\eta} 
+	\int_0^L c_N(x)\,\phi(x)\,\left(x\,\delta \theta- \delta z - \phi(x) \delta \eta \right)
+	\, dx
+	\\&= \nonumber	
+	2\frac{\sigma}{V_0} \dot{\eta} 
+    \left\{ 
+	\left[\int_0^{L} c_N(x)\,\phi(x)\,x\, dx \right] \delta \theta -
+	\left[\int_0^{L} c_N(x)\,\phi(x)   \, dx \right] \delta z 
+	\right.
+	\\&\qquad \quad \ \, - \nonumber	
+	\left.
+	\left[\int_0^{L} c_N(x)\,\phi(x)^2 \, dx\; \right] \delta \eta 
+	\right\}
+	\\&= \nonumber	
+	\rho_0 V_0\ \dot{\eta} \left\{I_\theta\ \delta \theta - I_z \delta z - I_\eta \delta \eta\right\}
+\end{align} 
+%donde se tuvo en cuenta que $z$ es positivo en dirección opuesta a la sustentación.
+siendo
+\begin{equation*}
+	I_\eta = \int_0^{L} c(x)\, \phi(x)^2\, dx              
+\end{equation*} 
+
+
+\paragraph{TVC}
+
+La deflexión del TVC agrega un trabajo virtual elástico dado por:
+\begin{equation*}
+	\delta W_t = \phi(x_t)\, \eta\, T\, \delta_t
+\end{equation*} 
+Por otra parte, asumiendo que el desplazamiento del TVC es una función exógena, 
+existirá una reacción de vínculo debido a la inercia $J_t$ y masa $m_t$ del conjunto rotado (tobera o tobera+motor) de magnitud:
+\begin{align*}
+	\tau_f &= J_t \ddot{\delta}_t \\
+	f_t    &= m_t d_t \ddot{\delta}_t
+\end{align*} 
+donde $d_{tvc}$ es la distancia desde el centro de masas del conjunto al punto de rotación.
+
+\paragraph{Aletas}
+
+Para incluir aletas podríamos asumir que se trata de cargas puntuales en su punto de anclaje.
+Si la carga normal es:
+\begin{equation*}
+	F_a = \sigma_0 \bar{S}_a CN_\alpha  \alpha(\delta_a)
+\end{equation*} 
+Asumiendo que la rotación de las aletas es una función exógena, 
+existirá una reacción de vínculo debido a la inercia $J_a$ del conjunto rotado (flap o aleta completa) de magnitud:
+\begin{equation*}
+	\tau_a = J_a \ddot{\delta}_a
+\end{equation*} 
+
+...
+
+\todo{COMPLETAR}
+
+\subsubsection{Modelo Resultante}
+
+Para el movimiento como cuerpo rígido podemos decir que $\vect{q}_r = \{ z , \theta \}$, y que:
+\begin{equation}\label{ecu:rocket-rigid-part} 
+	\begin{bmatrix} 
+		m -Z_{\dot{w}} & 0 \\ 
+		-M_{\dot{w}} & J_y
+	\end{bmatrix}
+	\begin{Bmatrix} \dot{w} \\ \dot{q} \end{Bmatrix}
+	+ 
+	\begin{bmatrix} 
+		Z_w & \phantom{-}\clrg{m W_0} \\ 
+		M_w & M_q 
+	\end{bmatrix}
+	\begin{Bmatrix} w \\ q \end{Bmatrix}
+	+ 
+	\begin{bmatrix} 
+		\clrb{mg \sin \theta_e} \\ 
+		0 
+	\end{bmatrix}
+	\theta  
+	= 
+	\begin{Bmatrix} Q_{z_e} \\ Q_{\theta_e} \end{Bmatrix}
+\end{equation}
+En verde se colorearon los términos cinemáticos y en azul los gravitatorios.
+
+Obtenemos $Q_{z_e}$ y $Q_{\theta_e}$ derivando \eqref{ecu:rocket-aeroelastic-WNe} respecto de $\delta z$ y $\delta \theta$, lo cual da resultados que solo dependen de $\dot{\eta}$.
+\bigskip
+
+Por otra parte, para el primer modo de flexión del ala $\vect{q}_e = \eta$:
+\begin{equation}\label{ecu:rocket-elastic-part}
+	m_\eta \ddot{\eta} + d_e \dot{\eta} + m_\eta \lambda_\eta\, \eta = Q_{\eta_r} + Q_{\eta_e} + Q_{\eta_\delta}
+\end{equation}
+donde $m_\eta$ es la masa equivalente para el primer modo, $d_e$ representa el amortiguamiento estructural (en caso de ser considerado),  $\lambda_\eta = \omega_\eta^2$ siendo $\omega_\eta$ la frecuencia de este modo.
+$Q_{\eta_r}$ surge de derivar \eqref{ecu:rocket-aeroelastic-WNr} respecto de $\delta \eta$, lo cual arroja un resultado que depende de $w$ y $q$, mientras que $Q_{\eta_e}$ es la fuerza generalizada obtenida de derivar \eqref{ecu:rocket-aeroelastic-WNe} respecto de $\delta \eta$.
+\bigskip
+
+Definiendo $h = \rho_0 V_0$ obtenemos el lado derecho de \eqref{ecu:rocket-rigid-part} y \eqref{ecu:rocket-elastic-part}:
+\begin{align*}
+	Q_{z_e}      &= - h I_z\ \dot{\eta}  \\
+	Q_{\theta_e} &= \phantom{-} h I_\theta \dot{\eta}  \\
+	Q_{\eta_e}   &= - h I_\eta\ \dot{\eta} \\ % \phantom{-} Q_{z_e} \\ 
+	Q_{\eta_w}   &= - h I_z\ w \\ 
+	Q_{\eta_q}   &= \phantom{-} h I_\theta\ q \\
+	Q_{\eta_\delta} &= \phantom{-} \phi(x_{tvc})\, T\, \delta_y\\
+\end{align*} 
+
+Al construir el modelo de estados se tendrá una estructura de la forma:
+\begin{equation}\label{ecu:aeroelastic-state-model} 
+	\left\{\begin{array}{c}
+		 \dot{w} \\ \dot{q} \\ \dot{\theta} \\ \midrule \dot{\eta} \\ \ddot{\eta} 
+	 \end{array}\right\}
+	= 
+	\left[\begin{array}{c c c | c c}	
+		z_w		& u_e	& -g \sin \theta_e & 0       & z_e  \\
+		m_w		& m_q	& 0                & 0       & m_e  \\
+		0		& 1		& 0			       & 0       &  0   \\ 
+		\midrule  
+		0       & 0      & 0       & 0       & 1 \\ 
+		\eta_w  & \eta_q & 0       & -\lambda_\eta & -c_e 
+	 \end{array}\right]
+	\left\{\begin{array}{c}
+	w \\ q \\ \theta \\ \midrule \eta \\ \dot{\eta} 
+	\end{array}\right\}
+	+ 
+	\left[\begin{array}{c}	
+		z_\delta \\ m_\delta \\  0  \\  \midrule 0 \\ \eta_\delta 
+	\end{array}\right]
+	\begin{Bmatrix} \delta_y \end{Bmatrix}
+\end{equation}
+
+en donde $c_e = (d_e - Q_{e_\eta})/m_\eta$. Los bloques en la diagonal son las dinámicas desacopladas. 
+El bloque superior derecho es el acoplamiento aeroelástico, mientras que el inferior izquierdo representa el acoplamiento entre cuerpo rígido y deformación estructural.
+
+\begin{shaded}
+
+\subsubsection{Cómputo con aproximación numérica}
+
+Contando con una cómputo numérico de la deformada: 
+\begin{lstlisting}[language=Matlab]
+% X : nodos 
+% C : 2S' en cada nodo 
+% Y1: deformada
+
+Iz = trapz(X, C.*Y1);
+It = trapz(X, C.*Y1.*X);
+Ie = trapz(X, C.*(Y1.^2));
+\end{lstlisting}
+
+Para la energía cinética por deformación, tendiendo en cuenta que $v_z(\xi) = \phi(\xi) \dot{\eta}$ sería:
+\begin{equation} 
+	T_e = \frac{1}{2} m_\eta \dot{\eta}^2 
+	\qquad , \qquad 
+	m_\eta = \int_0^{L} \mu(y) \phi(y)^2 dy 
+\end{equation}
+
+\begin{lstlisting}[language=Matlab]
+% mu: densidad lineal en los nodos 
+m_ = trapz(X, mu.*(Y1.^2));
+\end{lstlisting}
+
+\paragraph{Modelo completo}
+
+Si para el modelo de cuerpo rígido tenemos una ecuación del tipo:
+\begin{equation} 
+	\mtx{M}_r \dot{\vect{x}} = \bar{\mtx{A}}_r \vect{x}
+\end{equation}
+donde $\vect{x} = \{ w \,, q \,, \theta\}$, definiendo $\vect{\eta} = \{ \eta \,, \dot{\eta}\}$ tendríamos para la \eqref{ecu:rocket-aeroelastic-state-model} la forma:
+\begin{equation} 
+	\begin{Bmatrix} \dot{\vect{x}}  \\ \dot{\vect{\eta}} \end{Bmatrix} 
+	= 
+	\begin{bmatrix} \mtx{A}_r & \mtx{A}_{re}  \\ \mtx{A}_{er} & \mtx{A}_e \end{bmatrix} 
+	\begin{Bmatrix} \vect{x}  \\ \vect{\eta} \end{Bmatrix} 
+\end{equation}
+donde:
+\begin{align}
+	\mtx{A}_r    &= \mtx{M}_r^{-1} \bar{\mtx{A}}_r \\
+	\mtx{A}_{re} &= \mtx{M}_r^{-1} \begin{bmatrix} 0 & Q_{e_z} \\ 0 & Q_{e_\theta} \\ 0 & 0 \end{bmatrix} \\
+	\mtx{A}_{er} &= \begin{bmatrix} 0 & 0 & 0 \\ Q_{r_w} & Q_{r_q} & 0 \end{bmatrix} \frac{1}{m_\eta} \\
+	\mtx{A}_e    &= \begin{bmatrix} 0 & 1 \\ -\lambda_\eta & Q_{e_\eta}/m_\eta \end{bmatrix} 
+\end{align} 
+
+\end{shaded}
+
+\subsubsection{Ecuación de salidas}
+
+Dado que los sensores no se encuentran ubicados en el CG, es necesario considerar el efecto de la deformación elástica en las mediciones inerciales.
+
+El giro por flexión cambia la orientación del ISA, mientras que la velocidad de deformación tiene efectos sobre las mediciones de velocidad angular y fuerza específica.
+
+Si $x_{isa}$ es la posición del arreglo de sensores inerciales, 
+los incrementos en las lecturas resultarían: 
+
+\begin{align*} 
+	\delta f      &= y (x_{isa}) \ \ddot \eta \\ 
+	\delta \omega &= y'(x_{isa}) \ \dot  \eta \\
+	\delta \theta &= y'(x_{isa}) \ \eta  
+\end{align*}
+donde $y(x)$ es la forma modal. % y $d_{cg} = x_{isa} - x_{cg}$.
+
+
+%Utilizamos la ecuación \eqref{ecu:tray_v_dot} para los cambios en la velocidad, pero para la senda de ascenso $\gamma$ debemos agregar la la fuerza normal a la \eqref{ecu:tray_gamma_dot} cuando $\alpha \neq 0$.
+%Para el ángulo de ataque se tiene que:
+%\begin{equation*} 
+%	\alpha = \sin^{-1} \frac{w^b}{V} \approx \frac{w^b}{V}
+%\end{equation*}
+%y para el ángulo de la velocidad:
+%\begin{equation*} 
+%	\gamma = \theta - \alpha 
+%\end{equation*}
+%con lo cual
+%\begin{equation*} 
+%	\dot{\gamma} = \dot{\theta} - \dot{\alpha} 
+%	%           \\&= q - \frac{\partial \alpha}{\partial w} \dot{w} - \frac{\partial \alpha}{\partial V}\dot{V}
+%	           = q - \frac{1}{V} \dot{w} + \frac{w}{V^2}\dot{V}
+%\end{equation*}
+%Y como $w = V \sin \theta$:
+%\begin{equation*} 
+%	\dot{\gamma} = q - \frac{1}{V} \left(\dot{w} - \dot{V} \sin \theta \right)
+%\end{equation*}
+%De la suma de fuerzas en $z^b$ tenemos que:
+%\begin{equation*} 
+%	\dot{w} = g \cos \theta - f_N \sin \alpha
+%\end{equation*}
+%con lo cual finalmente:
+%\begin{equation*} 
+%	\dot{\gamma} = q - \frac{1}{V} \left(g \cos \theta - f_N \sin \alpha - \dot{V} \sin \theta \right)
+%\end{equation*}
+
+
+%donde $w$ es la componente vertical de la velocidad (con eje $z^e$ apuntando hacia abajo)
+
+\end{document}

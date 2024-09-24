@@ -1,0 +1,447 @@
+\documentclass[rocket.tex]{subfiles}
+
+\begin{document}
+
+\subsection{Fase Atmosférica}
+
+Para el análisis de trayectoria en una inserción orbital es suficiente modelar el vehículo como una masa puntual sujeta a fuerzas aerodinámicas, gravitacionales y de propulsión.
+Para esto se considera un sistema de coordinadas inerciales centrado en el centro de masas del cuerpo celeste a orbitar, 
+y un sistema de coordenadas móvil alineado con la tangente a la circunferencia que pasa por la posición instantánea del vehículo; 
+lo cual define un horizonte local.
+Es conveniente además plantear parámetros de actitud y dirección respecto del horizonte local, considerando un sistema de coordenadas local móvil con el vehículo (\cite[fig.6.8, p.~145]{astronautics}).
+
+{
+\centering
+\hspace{2cm}
+\includegraphics[width=0.6\linewidth]{rocket/co-moving-frame}
+}
+
+El objetivo del vuelo es lograr que la carga útil adquiera cierta condición orbital, lo que requiere alcanzar la altura $h$ deseada con cierta velocidad $\vect{v}$, que normalmente es muy superior a la del punto de lanzamiento; lo cual requiere una inyección de energía.
+
+La energía específica (por unidad de masa) es:
+\begin{equation} 
+	E = h + \frac{v^2}{2g} 
+\end{equation}
+
+%{
+%\centering
+%\includegraphics[width=0.9\linewidth]{rocket/space-launch-glide-path-transparente}
+%}
+
+Su velocidad de cambio en función del combustible consumido sería:
+\begin{align} 
+	\frac{dE}{dm} &= \frac{dh}{dm} + \frac{V}{g}\frac{dV}{dm} = \frac{1}{dm/dt}  \left(\frac{dh}{dt} + \frac{V}{g}\frac{dV}{dt}\right) 
+	\nonumber \\& = \frac{1}{\dot{m}}  \left(\dot{h} + \frac{1}{g} \vect{v}^T \dot{\vect{v}}\right) 
+	\nonumber \\& = \frac{1}{\dot{m}}  \left(V \sin \gamma + \frac{V T}{m g} \cos \alpha - V \sin \gamma\right) 
+\end{align}
+Respecto del sistema de coordenadas local, y considerando un cuerpo celeste homogéneo y esférico (la gravitación del apunta a su centro de masas):
+\begin{align} 
+	\dot{v} &= \tau \cos \alpha - d - g \sin \gamma \label{ecu:tray_v_dot}
+	\\
+	\dot{\gamma} &= \frac{\eta}{v} \sin \alpha + \left(\frac{v}{r} - \frac{g}{v}\right) \cos \gamma \label{ecu:tray_gamma_dot}
+\end{align}
+donde $\eta = T/m$ es el empuje específico, $d = D/m$ la resistencia específica y $r = R_e + h$, siendo $R_e$ el radio del cuerpo celeste. 
+\bigskip
+
+La trayectoria óptima debe maximizar la velocidad de cambio de la energía específica en función del combustible consumido. 
+En fase atmosférica la resistencia aerodinámica se minimiza con $\alpha = 0$, lo cual implica $\theta = \gamma$. 
+En tal caso:
+\begin{equation} \boxed{
+	\dot{\gamma} = \dot{\theta} = \left(\frac{v}{r} - \frac{g}{v}\right) \cos\gamma
+	}
+\end{equation}
+Esto implica realizar un giro gravitatorio, que dependerá el ángulo de inclinación inicial (\textit{initial pitchover angle}), la velocidad en ese punto y el perfil de aceleración $\tau(t)$.
+
+% https://en.wikipedia.org/wiki/Nose_cone_design
+
+\subsection{Empuje} 
+
+El empuje de un motor cohete se obtiene por reacción a un cambio en la cantidad de movimiento de una cierta masa de propelente (\cite[fig.1.1, p.~3]{astronautics})
+\bigskip
+
+{
+\centering
+\hspace{1cm}
+\includegraphics[width=0.7\linewidth]{rocket/rocket-thrust}
+}
+
+
+Su magnitud depende fundamentalmente de la \textit{velocidad de escape} $v_e$ y del caudal másico $\dot{m}$ de la masa eyectada,
+pero también se ve afectado por la adaptación de la tobera a la presión exterior $p_0$:
+\begin{equation}\label{ecu:rocket-thrust}
+	T = \dot{m} v_e + \left(p_e - p_0\right) A_e
+	= \dot{m} \left[v_e + \left(p_e - p_0\right) \frac{A_e}{\dot{m}}\right]
+	= \dot{m} v_{eq}
+\end{equation} 
+donde $p_e$ es la presión de escape de los gases y $A_e$ el área a la salida, 
+mientras que $v_{eq}$ es una velocidad equivalente para el caso perfectamente adaptado. 
+
+%También se puede plantear el empuje en términos de su empuje específico $I_{sp}$:
+%\begin{equation}\label{ecu:rocket-thrust_Isp}
+%	T = \dot{m} \cdot g_0 \cdot I_{sp} 
+%\end{equation} 
+%donde $g_0$ es la aceleración gravitatoria estándar de la tierra. 
+%
+%Se deduce que:
+%\begin{equation*}\label{ecu:pres-escape}
+%	T = I_{sp} g_0 \dot{m} - A_e \left(p_e - p_0\right) 
+%	\qquad \rightarrow \qquad 
+%	p_e = \frac{I_{sp} g_0 \dot{m} - T}{A_e} + p_0
+%\end{equation*} 
+
+\begin{shaded}
+
+La velocidad de escape se puede expresar como:
+\begin{equation}\label{ecu:vel-escape}
+	v_e = \sqrt{\frac{T R}{M}\frac{2 \gamma}{\gamma-1} \left[1 - \left(\frac{p_e}{p}\right)^{\frac{\gamma-1}{\gamma}}\right] }
+\end{equation} 
+donde $T$ es la temperatura absoluta del gas a la entrada, $R \approx 8314.5 J/kmol \cdot K$ es la constante universal de los gases, 
+$M [kg/kmol]$ es la masa molecular del gas,
+$\gamma = c_p/c_v$ es el factor de expansión isoentrópico (siendo $c_p$ y $c_v$ los calores específicos a presión y volumen constante respectivamente),
+$p_e$ es la presión absoluta a la salida y $p$ la correspondiente a la entrada. 
+
+Por otra parte, para un propulsor a reacción el empuje $T$ se puede expresar en función del impulso específico $I_{sp}$:
+\begin{equation}\label{ecu:specific-impulse}
+	\vect{T}^b = g_0 \dot{m} I_{sp}\, \hat{\vect{T}}^b
+	\qquad \rightarrow \qquad 
+	\dot{m} = \frac{|T|}{g_0  I_{sp}}
+	\quad , \quad 
+	I_{sp} = \frac{v_e}{g_0}
+\end{equation} 
+donde $g_0 = 9.80665 m/s^2$ es la gravedad estándar.
+%Por lo tanto:
+%\begin{equation}\label{ecu:vel-escape}
+%	T = I_{sp (vac)} g_0 \dot{m} - A_e p_0
+%	\qquad \rightarrow \qquad
+%	I_{sp (vac)}  = \frac{T + A_e p_0}{g_0 \dot{m}}  
+%\end{equation} 
+
+\end{shaded}
+
+\subsection{Inserción Orbital}
+
+Cuando el análisis precedente se extiende al vuelo completo, el panorama es más complejo, pero puede reducirse a un análisis bidimensional en el plano orbital.
+
+El aspecto central del vuelo de ascenso se puede plantear alternativamente como:
+
+\begin{itemize}[noitemsep,leftmargin=3cm]
+	\item  maximizar el incremento de velocidad $\Delta v$ alcanzable a cierta altura con una cierta masa de propelente
+	\item  minimizar la masa de propelente para alcanzar un cierto $\Delta v$ minimizando el consumo de combustible, y con ello la capacidad de carga 
+\end{itemize}
+
+Para el cómputo de velocidad se puede integrar el balance de fuerzas en la dirección de vuelo \eqref{ecu:tray_v_dot}.
+Peor debe tenerse en cuenta que en el sistema de coordenadas inerciales, ni $D$ ni $\alpha$ están referidos a eje de viento sino a la inclinación de la velocidad, 
+ya que la masa de aire tiene velocidad no nula en coordenadas inerciales.  
+Además, $g$ no es la \textit{gravedad} sino la \textit{gravitación} (no incluye el efecto centrífugo de la rotación terrestre)
+
+El incremento de velocidad resulta:
+\begin{equation*} 
+	\Delta v = \int_0^{t_f}\tau \cos\alpha\, dt - \int_0^{t_f}d\,dt - \int_0^{t_f} g \sin\gamma\, dt
+\end{equation*}
+Dado que:
+\begin{equation*} 
+	\cos\alpha = 1 - 2 \sin^2 \frac{\alpha}{2}
+\end{equation*}
+El incremento de velocidad puede expresarse como:
+\begin{equation} \boxed{
+	\Delta v = \int_0^{t_f}\tau\, dt - 2 \int_0^{t_f}\tau \sin \frac{\alpha}{2}\, dt - \int_0^{t_f}d\,dt - \int_0^{t_f} g \sin\gamma\, dt
+	}
+\end{equation}
+El primer término, con una velocidad de escape equivalente $v_{eq}$ constante resulta:
+\begin{equation*} 
+	\Delta v_t = v_{eq} \ln \frac{m_i}{m_f} 
+\end{equation*}
+que es lo establecido por la ecuación del cohete de Tiolkovsky.
+Los tres términos negativos representan perdidas:
+\begin{align*} 
+	\Delta v_s &= 2 \int_0^{t_f}\tau \sin \frac{\alpha}{2}\, dt \\
+	\Delta v_a &= \int_0^{t_f}d\,dt \\
+	\Delta v_g &= \int_0^{t_f} g \sin\gamma\, dt
+\end{align*}
+siendo $\Delta v_s$ un termino de pérdidas por \textit{apuntamiento o maniobra (steering)}, 
+$\Delta v_a$ \textit{resistencia aerodinámica (drag)} y $\Delta v_g$ las pérdidas \textit{gravitacionales} respectivamente.
+
+\subsection{Cómputo de Trayectoria}
+
+Para el cálculo de trayectoria resulta conveniente desde el punto de vista computacional, 
+proyectar las fuerzas en un sistema de coordenadas asociado al móvil o del cuerpo (terna $b$): 
+\begin{equation*}
+	\vect{f}^b = \vect{f}^b_a + \vect{\tau}^b 
+\end{equation*}
+Esto se proyecta luego en el sistema de referencia $r$ de coordenadas teniendo en cuenta la orientación $\vect{\theta}_r$ del vehículo respecto del mismo:
+\begin{equation*}
+	\vect{f}^r = \mtx{C}_b^r\left(\vect{\theta}_r\right) \vect{f}^b
+\end{equation*}
+donde  $\mtx{C}_b^r$ es la matriz de rotación que proyecta vectores definidos en la terna $b$ del cuerpo a la terna $r$ de referencia.
+
+La orientación cambiará con una velocidad $\vect{\omega}_{ib}$, que se asumirá impuesta externamente (ya para el punto no se considera la dinámica angular), y computada en una terna inercial $i$:
+\begin{equation*}
+ 	{\dot{\vect{\theta}}}_r = \mtx{H}_b^r(\vect{\theta}_r) \vect{\omega}_{ib}^b
+\end{equation*} 
+siendo $\mtx{H}_b^r(\vect{\theta}_r)$ es la transformación entre la velocidad angular (inercial) proyectada en la terna $b$ ($\vect{\omega}_{ib}^b$) y la derivada de la actitud.
+\bigskip
+
+Con esto las ecuaciones para la trayectoria son:
+\begin{align}
+	{\dot{\vect{p}}}^r   &= \vect{v}^r \label{ecu:nav-r-1} \\
+	{\dot{\vect{v}}}^r   &= \vect{f}^r + \vect{\gamma}^r \left( \vect{p}^r \right) + \vect{\Omega}_{ir}^r\times\vect{v}^r \label{ecu:nav-r-2} \\
+	{\dot{\vect{\theta}}}^r &= \mtx{H}_b^r(\theta) \vect{\omega}_{ib}^b \label{ecu:nav-r-3} 
+\end{align}
+siendo $ \vect{\gamma}$ la gravitación del cuerpo celeste y $\vect{\Omega}_{ir}^r$ la velocidad de rotación del sistema de coordenadas de referencia respecto de una terna inercial.
+
+Usando un cuaternión unitario para la actitud:
+\begin{equation}\label{ecu:nav-f} 
+	\vect{f}^r = \mtx{C}_b^r\left(\vect{q}_b^r\right) \vect{f}^b = \vect{q}_b^r \vect{f}^b{\bar{\vect{q}}}_b^r 
+\end{equation}
+Para futuras referencias téngase en cuenta que el producto vectorial entre una velocidad angular $\vect{\omega} = \{p,q,r\}$ y un vector de velocidad lineal $\vect{v} = \{u,v,w\}$ puede expandirse de la siguiente forma:
+\begin{equation*}
+	\vect{\omega} \times \vect{v} = \begin{Bmatrix} qw - rv \\ ru - pw \\ pv - qu \end{Bmatrix} 
+\end{equation*}
+Para un sistema de referencia que solo rota alrededor del eje $z$ ($p=q=0, r=\Omega$):
+\begin{equation*}
+	\vect{\Omega} \times \vect{v} = \Omega \begin{Bmatrix} -v \\ \phantom{-}u \\ \phantom{-}0 \end{Bmatrix} 
+\end{equation*}
+ 
+\subsubsection{\href{https://ai-solutions.com/_help_Files/orbit_reference_frames.htm}{Sistemas de referencia}}
+
+Se considera un sistema de coordenadas centrado en el cuerpo celeste a orbitar. 
+Este sistema puede ser solidario al mismo (rotante) o cuasi-inercial, alineando sus ejes con referencias celestes relativamente fijas en relación a la escala de tiempos del movimiento.
+
+\paragraph{Coordenadas terrestres} 
+
+Para determinar parámetros relacionados con la tierra (navegación terrestre, condiciones atmosféricas, etc.) se define el sistema rotante ECEF (Earth Centered Earth Fixed) con eje $z$ alineado al eje norte-sur geográfico y eje $x$ alineado con el meridiano de Greenwich. 
+
+En terna ECEF la rotación del sistema de coordenadas se produce alrededor del eje $z$ con velocidad angular $\vect{\Omega}_{ie}$, resultando para la ecuación \eqref{ecu:nav-r-2}:
+\begin{equation}\label{ecu:nav-ecef}
+	\dot{\vect{v}}^e = \vect{f}^e + \vect{g}^e\left(\vect{p}^e\right) - 2\mathbf{\Omega}_{ie}^e\times\vect{v}^e 
+\end{equation}
+donde $\vect{g}^e$ es la gravedad terrestre. 
+
+Debe tenerse en cuenta que en este modelo la gravedad se compone de un término de \textit{gravitación}, y otro de efecto centrífugo asociado a su rotación \cite[p.~117]{mespana}:
+\begin{equation}\label{ecu:gravity}
+	\vect{g}^e\left(\vect{\Omega}_e, \vect{p}^e\right) = \vect{\gamma}^e\left(\vect{p}^e\right) - \vect{\Omega}_{ie}^e\times\left(\vect{\Omega}_{ie}^e\times\vect{v}^e\right) 
+\end{equation}
+Usando un cuaternión unitario para la actitud:
+\begin{equation}\label{ecu:nav-ecef-att}
+	%\vect{f}^e  &= \mtx{C}_b^e\vect{f}^b = \vect{q}_b^e \vect{f}^b{\bar{\vect{q}}}_b^e \\
+	\dot{\vect{q}}_b^e = \frac{1}{2}\vect{q}_b^e \begin{Bmatrix} 0 \\ \vect{\omega}_{eb}^b \end{Bmatrix}
+                      	 -\frac{1}{2}\begin{Bmatrix} 0 \\ \vect{\Omega}_{ie}^e \end{Bmatrix}\vect{q}_b^e 
+\end{equation}
+En coordenadas terrestres es necesario computar la posición y velocidad respecto de una referencia inercial para determinar los parámetros orbitales, 
+por lo cual es necesario consideran las transformaciones a los sistemas de coordenadas cuasi-inerciales para la navegación orbital.   
+
+\paragraph{Referencias inerciales} 
+
+En un sistema inercial desaparece el término centrífugo de la \eqref{ecu:nav-r-2}:
+\begin{equation}\label{ecu:nav-eci-vel}
+	{\dot{\vect{v}}}^i = \vect{f}^i + \vect{\gamma}^i \left( \vect{p}^i \right) \\
+\end{equation}
+Usando un cuaternión unitario para la actitud:
+\begin{equation}\label{ecu:nav-eci-att}
+ 	{\dot{\vect{q}}}_b^i = \frac{1}{2}\vect{q}_b^i \begin{Bmatrix} 0 \\ \vect{\omega}_{ib}^b \end{Bmatrix}
+ \end{equation}
+ 
+%donde $\vect{\gamma}^i$ es la gravitación del cuerpo celeste proyectada en terna inercial, 
+%$\mtx{C}_b^i$ es la matriz de rotación que proyecta vectores definidos en la terna $b$ del cuerpo a la terna $i$ de referencia, 
+%y $\mtx{H}_b^i(\theta)$ es la matriz de transformación entre la velocidad angular proyectada en la terna $b$ ($\vect{\omega}_{ib}^b$) y la derivada de la actitud.
+%\bigskip
+
+%Si el sistema de referencia para la posición no es inercial es necesario introducir un término asociado a la cinemática del sistema de referencia.
+La navegación orbital se realiza en coordenadas inerciales, siendo mucho más simple en estas coordenadas la determinación de los parámetros correspondientes.
+Pero computar las fuerzas aerodinámicas en fase atmosférica y anomalías gravitatorias relevantes para el vuelo orbital es necesario determinar posición y velocidad relativa respecto de la Tierra, cuya complejidad dependerá de la elección de ejes del sistema inercial.
+\bigskip
+
+Como sistema cuasi-inercial puede tomarse centrado en el cuerpo celeste a orbitar, alineado su eje $x$ en la dirección hacia el Sol en un momento determinado (época). 
+
+
+%es necesario determinar la magnitud y los ángulos de incidencia de la velocidad relativa entre eñ vehículo y el aire, la cual se compone del movimiento relativo del vehículo y de la atmósfera respecto de la superficie terrestre.
+
+%Por lo tanto, con referencias inerciales independientemente del sistema de referencia surge la necesidad de determinar el vector velocidad tanto respecto de un sistema de coordenadas inerciales como respecto de la superficie terrestre.
+
+Para navegación espacial se suele utilizar el estándar ICRF (\textit{International Celestial Reference System}), con origen en la Tierra, eje $x$ en la dirección Tierra-Sol en el equinoccio vernal en el hemisferio boreal del año 2000 en el calendario Juliano, y eje $z$ es normal al plano de la eclíptica.
+
+\begin{figure}[t!]
+  \centering
+  \begin{subfigure}[b]{0.45\linewidth}
+    \includegraphics[width=\linewidth]{ref/earthfixeddiagram}
+    \caption{Coordenadas ECEF}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.45\linewidth}
+    \includegraphics[width=\linewidth]{ref/mj2000diagram}
+    \caption{Estándar MJ2000}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.45\linewidth}
+    \includegraphics[width=\linewidth]{ref/mj2000ecliptic}
+    \caption{Estándar ICRF}
+  \end{subfigure}
+  \caption{ver \cite{ai-solutions-orbit-reference-frames}}
+  \label{fig:lyap-func-R2}
+\end{figure}
+
+
+
+El mapeo a coordenadas Terrestres implica la rotación hasta la época actual y la inclinación respecto de la eclíptica.
+Debe tenerse en cuenta que el eje de rotación terrestre experimenta movimientos de nutación que complican este mapeo.
+
+Esto se simplifica un poco tomando el eje $z$ coincidente con eje norte-sur terrestre (\textit{Mean of J2000 Earth Equator}), de lo cual se obtiene un sistema cuasi-inercial fácilmente transformable al sistema ECEF, pero que arrastra las cuestiones asociadas al calendario.
+
+Para determinar la fecha en el calendario Juliano en términos de la fecha calendaria \texttt{yyyy/mm/dd} se puede usar la siguiente expresión \cite[p.~358]{astronautics}:
+\begin{align}\label{ecu:julian-date}
+	JD &= 367 \langle yyyy \rangle - INT\left\{ 1.75 \left[\langle yyyy \rangle  + INT\left(\frac{\langle mm \rangle + 9}{12}\right)\right] \right\} \nonumber \\
+	&+ INT \left(\frac{275}{9} \langle mm \rangle\right) + \langle dd \rangle  + 1 \, 721 \, 013.5
+\end{align}
+Para los cómputos de optimización de trayectoria resulta más cómodo aún tomar como época el momento del lanzamiento, eliminando las cuestiones asociadas al calendario.
+
+\subsubsection{Trayectoria 2D}
+
+En primer término se analiza la dinámica de la trayectoria en un cierto plano orbital, asumiendo que no existen fuerzas normales al mismo.
+ 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\linewidth]{rocket/2D-orbit-eci-XY}
+	\caption{Referencias para el análisis 2D}
+	\label{fig:2d-orbit-eci-xy}
+\end{figure}
+
+\paragraph{Integración en coordenadas inerciales}
+
+Se adopta un sistema inercial centrado en la tierra tomando los ejes $x$ e $y$ en el plano orbital, estando el punto de lanzamiento sobre el primero.
+
+En el caso de una órbita ecuatorial, los ejes quedan contenidos en el plano del ecuador; y el ángulo $\Phi$ coincide con la longitud geográfica para una tierra no rotante.
+En el sistema de referencia $xy^i$, $\zeta$ es la orientación del vector velocidad y $\theta$ es la orientación del vector de empuje.
+El ángulo $\beta$ es la inclinación del horizonte local y $\gamma$ la elevación del vector velocidad respecto del anterior, es decir:
+\begin{align}
+	\gamma &= \beta - \zeta\\
+	\alpha &= \theta - \zeta 
+\end{align}
+
+Con un modelo de tierra plana, un sistemas de coordenadas fijo al punto de lanzamiento podría considerarse como inercial. 
+%Sin embargo, sería necesario considerar una aceleración centrífuga asociada a la velocidad tangencial:
+%\begin{align*}
+%	\dot{u} &= \frac{T}{m} \cos \theta \\
+%	\dot{w} &= \frac{T}{m} \sin \theta + a_c - g
+%	\qquad , \qquad
+%	a_c = \frac{u^2}{R+h} \\
+%	\dot{h} &= w 
+%\end{align*} 
+%donde $R$ es el radio de la tierra.
+
+\paragraph{Integración en coordenadas terrestres}
+
+%En un sistema geográfico local alineado con el plano orbital deberíamos considerar que para referencias no inerciales:
+%\begin{equation*}
+%	m \frac{d\vect{v}^n}{dt} + m \vect{\omega}^n \times \vect{v}^n = \vect{F}^n
+%\end{equation*}
+%En el plano orbital tendremos $v = 0$ y $p = r = 0$:
+%\begin{align*}
+%	\frac{du^n}{dt} &= f_x^n - q_e w\\
+%	\frac{dw^n}{dt} &= f_z^n + q_e u
+%\end{align*}
+%La velocidad de giro del sistema de coordenadas $n$ será $u/(R+h)$.
+
+
+\subsubsection{Trayectoria 3D}
+
+Para la integración es necesario realizar varios mapeos.
+
+\paragraph{Mapeo ECI a ECEF}
+
+Para esta transformación se puede plantear una matriz de rotación simple alrededor del eje $z$ con $\Psi = \Omega_e * \Delta t$:
+\begin{align*}
+	\mtx{c}_i^e &= \begin{bmatrix} \phantom{-}\cos\Psi & \sin\Psi & 0 \\ -\sin\Psi & \cos\Psi & 0 \\ 0 & 0 & 1 \end{bmatrix} 
+	\\ 
+	\vect{q}_e^i &= \begin{Bmatrix} \cos \Psi/2 \\ 0 \\ 0 \\ \sin \Psi/2 \end{Bmatrix}
+\end{align*}
+
+\paragraph{Mapeo ECI a NED}
+
+En principio es necesario realizar un mapeo a coordenadas esféricas, lo cual a partir de la posición $\vect{p} = \{x\ y\ z\}$ resulta trivial:
+
+\begin{align*}
+	R_c &= \sqrt{\vect{p}^T \cdot  \vect{p}} \qquad, \qquad r_e = \sqrt{x^2 + y^2} 
+	\\[4pt] 
+	h &= R_c - R_e \qquad, \qquad
+	\phi = \tan^{-1} \frac{z}{r_e} \qquad, \qquad
+	\lambda = \tan^{-1} \frac{y}{z}
+\end{align*}
+donde $R_c$ es el radio geocéntrico, $R_e$ es el radio terrestre, $\phi$ es la latitud y $\lambda$ la longitud.
+
+Para mapear vectores de la terna inercial a la local (tangente a la esfera) producimos una rotación en $z$ de magnitud $\lambda$ para alinear el plano $xz$ con el meridiano del lugar, 
+luego una rotación $-\phi$ alrededor del eje $y$ para alinear el eje $z$ con la vertical del lugar:
+\begin{equation*}
+	\mtx{C}_\lambda = \begin{bmatrix} \phantom{-}\cos\lambda & \sin\lambda & 0 \\ -\sin\lambda & \cos\lambda & 0 \\ 0 & 0 & 1 \end{bmatrix} 
+	\quad , \quad  
+	\mtx{C}_\phi    = \begin{bmatrix} \phantom{-}\cos\phi & 0 & \sin\phi \\ 0 & 1 & 0 \\ -\sin\phi & 0 & \cos\phi \end{bmatrix}
+\end{equation*}
+de lo cual obtenemos la transformación a una terna UEN:
+\begin{equation}\label{ecu:C_i_uen}
+	\mtx{C}_i^l = \mtx{C}_\phi \mtx{C}_\lambda
+	=
+	\begin{bmatrix}  
+		 \cos\lambda \cos\phi &  \sin\lambda \cos\phi & \sin\phi \\
+		-\sin\lambda          &  \cos\lambda          & 0 \\
+		 \cos\lambda \sin\phi & -\sin\lambda \sin\phi & \cos\phi 
+	\end{bmatrix}	
+\end{equation}
+Finalmente intercambiamos los ejes $y$ y $z$ para obtener una terna NED:
+\begin{equation*}
+	\mtx{C}_n = \begin{bmatrix} \phantom{-}0 & \phantom{-}0 & \phantom{-}1 \\ \phantom{-}0 & \phantom{-}1 & \phantom{-}0 \\ -1 & \phantom{-}0 & \phantom{-}0 \end{bmatrix}
+\end{equation*}
+donde se ha tenido en cuenta que $\sin(-\phi) = \sin\phi\ ,\ \cos(-\phi) = \cos\phi$. 
+De esto resulta:
+\begin{equation}\label{ecu:C_i_n}
+	\mtx{C}_i^n = \mtx{C}_n \mtx{C}_\phi \mtx{C}_\lambda
+	=
+	\begin{bmatrix}  
+		-\cos\lambda \sin\phi & -\sin\phi \sin\lambda & \phantom{-}\cos\phi \\
+		-\sin\lambda          &  \cos\lambda          &  0 \\
+		-\cos\phi \cos\lambda & -\cos\phi\sin\lambda  & -\sin\phi 
+	\end{bmatrix}	
+\end{equation}
+donde $\mtx{C}_i^n$ es la matriz de rotación de la terna $i$ a una terna NED.
+
+Para pasar de NED a ENU:
+\begin{equation}\label{ecu:C_u_n}
+	\mtx{C}_{ned}^{enu} = \mtx{C}_{enu}^{ned} 
+	= 
+	\begin{bmatrix} 
+		0 & \phantom{-}1 & \phantom{-}0 \\ 
+		1 & \phantom{-}0 & \phantom{-}0 \\ 
+		0 & \phantom{-}0 &           -1 
+	\end{bmatrix}
+\end{equation}
+con lo que:
+\begin{equation}\label{ecu:C_i_u}
+	\mtx{C}_i^u
+	=
+	\begin{bmatrix}  
+		-\sin\lambda          &  \cos\lambda          &  0 \\
+		-\cos\lambda \sin\phi & -\sin\phi \sin\lambda & \cos\phi \\
+\phantom{-}\cos\phi \cos\lambda &  \phantom{-}\cos\phi\sin\lambda  & \sin\phi 
+	\end{bmatrix}	
+\end{equation}
+Para el mapeo de la actitud es necesario operar con cuaterniones. 
+Se busca llevar $\vect{q}_b^i$ a $\vect{q}_b^n$, para lo cual se puede plantear la siguiente secuencia:
+\begin{equation*}
+	\vect{q}_b^n = \vect{q}_i^n \cdot \vect{q}_b^i
+\end{equation*}
+Se puede obtener $\vect{q}_n^i$ a partir de $\mtx{C}_i^n$.
+, teniendo en cuenta la relación entre una matriz de rotación $\mtx{C}_b^a$ y el cuaternión correspondiente $\vect{q}_b^a = [\eta, \{x,y,z\}]$:
+%\begin{align}\label{ecu:dcm-to-quat}
+%	\eta &= \frac{1}{2} \sqrt{1 + c_{11} + c_{22} + c_{33}}  \\
+%  	   x &= \frac{1}{4\eta} (c_{32} - c_{23}) \nonumber \\
+%	   y &= \frac{1}{4\eta} (c_{13} - c_{31}) \nonumber \\
+%	   z &= \frac{1}{4\eta} (c_{21} - c_{12}) \nonumber
+%\end{align}
+%En este caso, trasponiendo la  $\mtx{C}_i^n$ definida en \eqref{ecu:C_i_n} para obtener el cuaternión $\vect{q}_n^i$:
+%\begin{align*}
+%	\eta &= \frac{1}{2} \sqrt{1 - \cos\lambda \sin\phi + \cos\lambda - \sin\phi}  \\
+%  	   x &= \frac{ 1}{4\eta}(\cos\phi \sin\lambda)      \\
+%	   y &= \frac{-1}{4\eta} \cos\phi (1+\cos\lambda)   \\
+%	   z &= \frac{ 1}{4\eta} \sin\phi (1 - \sin\lambda)
+%\end{align*}
+
+
+
+
+\end{document}

@@ -1,0 +1,324 @@
+\documentclass[rocket.tex]{subfiles}
+
+\begin{document}
+
+\subsection{Fase Atmosférica}
+
+La trayectoria nominal constaría de las siguientes fases:
+
+\begin{enumerate}[leftmargin=3cm,itemsep=0cm]
+	\item despegue (lift off): vuelo vertical hasta alcanzar una cierta altura de seguridad  
+	\item rotación (pitch maneuver): rotación hasta alcanzar el ángulo inicial para el giro gravitatorio
+	\item alivio de cargas (load relief): vuelo con ángulo de ataque nulo  hasta el MECO
+\end{enumerate}
+
+En todas las fases es necesario realizar un control de actitud.
+
+El vuelo es subsónico durante los primeros XX segundos. 
+La máxima presión dinámica se alcanza en vuelo supersónico a los XX segundos. 
+\bigskip
+
+Dado que las velocidades angulares deben permanecer acotadas durante todo el vuelo, 
+es aceptable realizar un planteo desacoplado para los tres ejes de la terna $b$. 
+
+Existen diferencias substanciales entre el control de cabeceo/guiñada y el de rolido, ya que en rolido la aerodinámica es sensible solo a la velocidad angular.
+
+\paragraph{Cabeceo/Guiñada}
+
+A partir del modelo linealizado se tiene para la velocidad angular de cabeceo:
+\begin{equation}\label{ecu:pitch-lin-model}
+	\dot{q} = \tau_a  + \tau_\delta \sin \delta
+	\qquad , \qquad
+	\tau_a = \frac{Q}{I_y} \bar{S} \bar{l} c_m(\mathcal{M}, \boldsymbol{\alpha}, \dot{\boldsymbol{\alpha}}, \boldsymbol{\omega})   
+	\qquad , \qquad \tau_\delta = \frac{T\,d_{tvc}}{I_y}
+\end{equation}
+donde $\delta$ es el ángulo de deflexión del vector de empuje $T$ en el plano $xy$ (rotación alrededor del eje $y$), 
+y $\tau_a$ es el momento específico de origen aerodinámico. 
+
+El modelo se completa con la relación cinemática:
+\begin{equation}\label{ecu:lin-pitch-rate}
+	\dot{\theta} = q
+\end{equation}
+lo cual es válido para rotaciones pequeñas, o solo alrededor del eje $y$.
+
+Para la guiñada el planteo es idéntico.
+
+
+\paragraph{Rolido}
+
+Para el control de rolido no se presentan cuestiones de estabilidad aerodinámica, 
+pero surge otra complicación si solo se cuenta con actuación aerodinámica; 
+ya que su efectividad depende de la presión dinámica:
+\begin{equation}\label{ecu:roll-lin-model}
+	\dot{p} = \frac{Q}{I_x} \bar{S} \bar{l}  \left( \tau_a  + \tau_p\, p  + \tau_\delta\,  \bar{u} \right)
+\end{equation}
+
+\begin{equation}\label{ecu:roll-lin-model-tau}
+	\tau_a = c_l(\mathcal{M})
+	\quad , \quad 
+	\tau_p = c_{l_p}(\mathcal{M})
+	\quad , \quad 
+	\tau_\delta = c_{l_f}(\mathcal{M}) \delta_{max}
+\end{equation}
+El término $\tau_a$ representa el efecto de las asimetrías en rolido (mayormente por des-alineación de aletas) que podemos asumir constantes, 
+mientras que $\tau_p < 0$ es un amortiguamiento aerodinámico. 
+El término $\tau_\delta$ está asociado a la efectividad de las aletas, y se incluye su deflexión máxima $\delta_{max}$ para que $\bar{u}$ represente la acción de control normalizada.
+
+
+\subsubsection{Control Lineal}
+
+\paragraph{Cabeceo/Guiñada}
+
+Es posible plantear una estrategia de control lineal efectiva.
+Teniendo en cuenta que la relación entre ángulo y velocidad angular es puramente cinemática, 
+las perturbaciones e incertidumbre se concentran en la dinámica de la velocidad angular.
+Por lo tanto se plantea un control en cascada con un lazo interno de velocidad angular y un lazo externo de actitud.
+
+Se puede definir el error de actitud como:
+\begin{equation}\label{ecu:theta-e}
+	\theta_e = r_\theta - \theta
+\end{equation}
+donde $r_\theta$ representa una referencia para el cabeceo.
+
+De la ecuación \eqref{ecu:lin-pitch-rate} puede verse que se puede eliminar el error de actitud $\theta_e$ forzando la velocidad angular $q$ de forma tal que:
+\begin{equation}
+	\dot{\theta}_e = -k_p\, \theta_e 
+\end{equation}
+con lo cual el error converge a cero con constante de tiempo . 
+Derivando \eqref{ecu:theta-e}:
+\begin{equation}
+	\dot{\theta}_e = \dot{r}_\theta - q 
+\end{equation}
+Podemos imponer la (4.4) con un control de velocidad que lleve  a un valor de referencia:
+\begin{equation}\label{ecu:q_ref}
+	r_q = k_p\, \theta_e + \dot{r}_\theta 
+\end{equation}
+De la segunda de las ecuaciones \eqref{ecu:pitch-lin-model} surge que esto se puede lograr esto con una ley de control dada por:
+\begin{equation}
+	\sin \delta = k_q \frac{1}{\tau_\delta} \,e_q = \bar{k}_q  \,e_q \qquad , \qquad  e_q = r_q - q 
+\end{equation}
+Se debería elegir $\bar{k}_q$ y $k_p$ para que la dinámica de lazo cerrado tenga un ancho de banda una década menor al de los los actuadores. % poseen un ancho de banda $\omega-a$, . 
+
+Resulta conveniente normalizar la acción de control con la deflexión máxima del TVC.
+Con esto, despreciando el término $\dot{r}_\theta$:
+\begin{align*}
+	r_q &= k_p \, \theta_e 
+	\\[8pt]
+	e_q &= r_q - q
+	\\[4pt]
+	\bar{u} &= k_q(t) \,e_q
+	\qquad , \qquad
+	k_q(t) = \bar{k}_q \frac{1}{\tau_\delta(t) \delta_{max}} 
+\end{align*}
+siendo $\theta_e$ la rotación adicional necesaria para llevar $\theta$ al valor de referencia: $\theta + \theta_e = r_\theta$.
+
+\paragraph{Control de Rolido}
+
+El requerimiento para el control de rolido es mantener velocidad angular nula.
+Para ello se requiere una acción proporcional a la velocidad de rolido $p$ para estabilizar el lazo, 
+y una acción integral para neutralizar el término $\tau_a$.
+
+Como integral de la velocidad angular puede usarse el error de actitud en rolido (definido en el mismo sentido que el de cabeceo/guiñada):
+\begin{equation}
+	u = k_r e_\phi - k_l(t) p
+\end{equation}
+Dado que la perturbación constante y el efecto de la deflexión crecen en igual proporción durante el vuelo, 
+se adopta un valor constante para $k_r$. 
+En cambio, el valor de $k_l$ debe ajustarse en función de la presión dinámica y el momento de inercia.
+%Realizamos el ajuste para acotar el ancho de banda de lazo cerrado, y escalamos dicho valor para otras condiciones de vuelo.
+
+Si:
+\begin{equation}
+	\frac{Q(t)}{I_x(t)} \bar{S} \bar{l}   \tau_\delta\ k_l(t) = \omega_r
+	\qquad \rightarrow \qquad 
+	k_l(t) = \omega_r  \frac{I_x(t)}{Q(t)} \frac{1}{\bar{S} \bar{l} } \frac{1}{ c_{l_f}(\mathcal{M}(t)) \delta_{max}} 
+\end{equation}
+cancelando la perturbación constante resulta:
+\begin{equation}
+	\dot{p} = -\omega_r \, p
+\end{equation}
+que converge exponencialmente a cero con constante de tiempo.
+
+
+\subsubsection{Control Super-Twisting}
+
+Una alternativa más robusta al control lineal es el control por modos deslizantes.
+Un Control Super-Twisting (STC) permite rechazar de forma exacta perturbaciones con derivada primera acotada.
+la ley ST es:
+\begin{align}\label{ecu:n-stc}
+	\nu        &= -\lambda_1 \sabs{1/2}{\phi} + \psi \\ \nonumber
+	\dot{\psi} &= -\lambda_2 \sabs{0}{\phi}
+\end{align}
+Si se puede expresar:
+\begin{equation}\label{ecu:smc-plant} 
+	\dot{\phi} = \nu + \Delta 
+\end{equation}
+donde $\nu$ es una acción de control (virtual) y $\Delta$ una perturbación acumulada con constante de Lipschitz $L$ 
+(es decir, $L$ es una cota para la primera derivada de la perturbación: $|\dot{\Delta}| < L$);
+con un ajuste de ganancias:
+\begin{equation}\label{ecu:n-sta-stab}
+    \lambda_2 > L \qquad , \qquad \lambda_1 > \sqrt{\lambda_2 + L}
+\end{equation}
+se alcanza un modo deslizante de segundo orden ($\phi = \dot{\phi} = 0$) en tiempo finito. 
+La variable de deslizamiento $\phi$ debe ser de grado relativo 1 respecto del control.
+\bigskip
+
+El ajuste de ganancias puede realizarse a partir de la constante de Lipschitz de la perturbación con:
+\begin{equation}\label{equ:alfa-beta}
+    \lambda_1 = \alpha \sqrt{L} \quad , \quad\
+    \lambda_2 = \beta L     
+\end{equation}
+donde parámetros de ajuste $\alpha$ y $\beta$ que cumplan con \eqref{ecu:n-sta-stab} (por ejemplo $\alpha = 1.7, \beta = 1$). 
+
+\paragraph{Velocidad angular}
+
+Si $\phi = e_\omega = \omega - r_\omega$, se tiene que:
+\begin{equation}\label{ecu:smc-plant-omega} 
+	\dot{\phi} = f(\alpha, \omega, t) - \dot{r}_\omega + \tau_\delta(t) \delta_{max} u 
+\end{equation}
+donde $\tau_\delta$ corresponde a la última expresión de \eqref{ecu:pitch-lin-model} para cabeceo/guñada, y \eqref{ecu:roll-lin-model-tau} para rolido.
+El término $f(\cdot)$ corresponde a la aceleración angular específica por efectos aerodinámicos, asimetrías en la propulsión y acoplamientos de inercia; 
+que se tratarán como incertidumbres, junto con la inserteza en la efectividad del control (particularmente relevante para el control de rolido) y la derivada de la referencia:
+\begin{equation*}
+	\Delta = f(\alpha, \omega, t) + \Delta \tau_\delta(t) \delta_{max} u - \dot{r}_\omega
+\end{equation*}
+Para la constante de Lipszhitz de los efectos aerodinámicos:
+\begin{equation*}
+	\dot{f}(\alpha, \omega, t) 
+	\approx  \frac{\partial f}{\partial \alpha} \dot{\alpha} + \frac{\partial f}{\partial \omega} \dot{\omega}
+	\approx  \frac{\partial f}{\partial \alpha} \omega
+\end{equation*}
+
+... 
+ 
+
+\paragraph{Cabeceo/Guiñada}
+
+En este caso, sin tener en cuenta la dinámica de los actuadores, el grado relativo es 2.
+Por lo tanto resulta conveniente plantear un control Super-Twisting de orden 3 (3-STC), para el cual:
+\begin{align}\label{ecu:3-sta}
+    \phi_3 &= k_2 \sabs{2/3}{z_1} + z_2 \\
+    z_1 &= \sigma_3 \quad , \quad 
+    z_2 = \dot{z}_1 = \dot{\sigma_3}  \nonumber 
+\end{align}
+En este caso $\sigma_3 = \theta_e = \theta - r_\theta$ en este caso sería el error de actitud.
+\begin{equation*} 
+    \phi_3 = k_2 \sabs{2/3}{\theta_e} + \dot{\theta_e}
+\end{equation*}
+Derivando:
+\begin{align}\label{equ:phi_3_dyn}  
+    \dot{\phi}_3  
+    &= 2/3\, k_2 \sabs{-1/3}{\theta_e} \dot{\theta}_e + \ddot{\theta}_e 
+     = 2/3\, k_2 \sabs{-1/3}{\theta_e} \left(q - \dot{r}_\theta\right) + \ddot{q} - \ddot{r}_\theta  
+    \nonumber \\
+    &= 2/3\, k_2 \sabs{-1/3}{\theta_e} \left(q - \dot{r}_\theta\right) + \tau_a - \ddot{r}_\theta + \tau_\delta u 
+\end{align}
+de donde:
+\begin{align}\label{equ:phi_3_dyn_nom}  
+    \nu &= \tau_\delta \delta_{max} u 
+    \nonumber \\
+    \Delta &= 2/3\, k_2 \sabs{-1/3}{\theta_e} \left(q - \dot{r}_\theta\right) + \tau_a - \ddot{r}_\theta
+%    \nonumber \\
+%    \dot{\Delta} &= 2/3\, k_2 \sabs{-1/3}{\theta_e} \omega_e + \tau_a - \ddot{r}_\theta
+\end{align}
+donde $\omega_e = q - \dot{r}_\theta$ representa el error de seguimiento para la velocidad angular.
+
+En modo deslizante $\theta_e = 0$, por lo cual nos interesa analizar la expresión:
+\begin{equation*} 
+    \Delta_{SM} = \tau_a - \ddot{r}_\theta
+\end{equation*}
+Por las características de la maniobra $\ddot{r}_\theta$ es muy pequeño.
+%Para el vuelo de primera etapa el término dominante es $\tau_a$:
+Por lo tanto, para determinar la constante de Lipschitz:
+\begin{align*} 
+	\tau_a &= \frac{Q}{I_y} \bar{S} \bar{l}  \left[c_{m_\alpha} \frac{\Delta w}{V_0} +
+		\frac{\bar{l}}{2 V_0} \left(c_{m_{\dot{\alpha}}}\ \frac{\dot{w}}{V_0} + c_{m_q}\ q \right)\right]
+	\\
+	\dot{\tau}_a &= \frac{Q}{I_y} \bar{S} \bar{l}  \left[c_{m_\alpha} \frac{\dot{w}}{V_0} +
+		\frac{\bar{l}}{2 V_0} \left(c_{m_{\dot{\alpha}}}\ \frac{\ddot{w}}{V_0} + c_{m_q}\ \dot{q} \right)\right]
+\end{align*} 
+En vuelo exo-atmosférico $\tau_a = 0$, con lo cual el ajuste de ganancias quedaría definido por la velocidad de respuesta deseada.
+
+En un control lineal el ancho de banda de lazo cerrado queda definido principalmente la ganancia del control. 
+Se podría decir que en primera aproximación el ancho de banda de lazo cerrado será una octava mayor a la frecuencia de cruce del lazo abierto, 
+y esta se ajusta al elegir una `banda proporcional' apropiada. 
+\bigskip
+
+En la ley \eqref{ecu:3-sta} puede notarse que en una condición estacionaria ($z_2 = \dot{z}_1 = 0$):
+\begin{equation*}
+    \phi = k_2 \sabs{2/3}{z_1} \quad \rightarrow \quad 
+ 	\nu  = -\lambda_1 \sqrt{k_2}  \sabs{1/2}{\theta_e} + \bar{\psi} 
+\end{equation*}
+
+Para el STC la banda proporcional podría establecerse como:
+\begin{equation*} 
+	\lambda_1 = \frac{\nu_{max}}{\sqrt{k_2  e_{tol}}} 
+\end{equation*}
+donde $e_{tol}$ es la tolerancia para el error de actitud.
+
+Para el STC en régimen deslizante $\phi = \dot{\phi} = 0$.
+Entonces, de acuerdo con \eqref{ecu:3-sta}:
+\begin{align}
+    \dot{\theta}_e = -k_2 \sabs{2/3}{\theta_e} 
+\end{align}
+Si normalizamos con $\bar{\theta}_e = \theta_e/e_{tol}$:
+\begin{align}
+    \dot{\theta}_e = -k_2 e_{tol}^{2/3} \sabs{2/3}{\bar{\theta}_e} 
+    \approx -k_2 e_{tol}^{2/3} \bar{\theta}_e \qquad si \quad \bar{\theta}_e \approx 1 
+\end{align}
+Concluimos que, aunque esta dinámica no es lineal, $k_2 e_{tol}^{2/3}$ cumple un rol similar al de $k_p$ en \eqref{ecu:q_ref}, definiendo un cierto ancho de banda en la convergencia de $\theta_e$.
+
+% e = pi/180; w = [1 2 5 10]; k2 = w/e^(2/3)
+% e_tol = 5*e; l1 = 1./sqrt(k2*e_tol)
+% l2 = l1^2/1,7^2
+En este caso, con una tolerancia de $1^0 = \pi/180$, restringiendo el ancho de banda de lazo cerrado $\omega_{LC}$ al menos una década por debajo del de los actuadores se tendría:
+\bigskip
+
+\begin{tabular}{c c c}
+ 	$\omega_{LC}$ & $k_2$ & $\lambda_1/\nu_{max}$ \\
+ 	\hline
+ 	 1 & 14.86  & 1.9635 \\
+ 	 2 & 29.72  & 1.3884 \\
+ 	 5 & 74.31  & 0.8781
+\end{tabular}
+\bigskip
+
+
+Si $\lambda_1$ de determina a partir del planteo anterior: 
+\begin{equation}\label{equ:alfa-beta}
+    \lambda_2 = \frac{\beta}{\alpha^2} \lambda_1^2     
+\end{equation}
+
+\paragraph{Rolido}
+
+
+
+
+\subsubsection{Alivio de Cargas}
+
+En \cite[p.~25, eq ()3.3-1)]{saturn-V-GyC} se propone para el cómputo de la deflexión del motor $\beta$ una ley proporcional al error de actitud $\Delta\phi$, la velocidad angular $\dot{\phi}$ 
+y la aceleración normal al eje del fuselaje $\ddot{\gamma}$.
+\begin{equation*}
+	\beta = a_0 \Delta \phi + a_1 \dot{\phi} + g_2 \ddot{\gamma}
+\end{equation*}
+donde el acelerómetro de control se ve afectado por el ángulo de ataque, la deflexión del motor y la aceleración angular:
+\begin{equation*}
+	 \ddot{\gamma} = \frac{N'}{m} \alpha + \frac{R'}{m} \beta + l_a \ddot{\phi} 
+\end{equation*}
+siendo $l_a$ la distancia del acelerómetro al CG.
+
+Las consignas de diseño son:
+
+\begin{itemize}[leftmargin=3cm,itemsep=0cm]
+\item The rigid-body control frequency should be sufficiently below the frequency of the lowest bending mode to allow the design of shaping networks that stabilize the bending modes without adversely affecting the control mode.
+\item The control frequency must be high enough to provide adequate vehicle response and to min-imize trajectory dispersions caused by thrust vector misaligument.
+\item The Control gains, which determine the control frequency, must be high enough to guarantee that the operating point does not go below the static stability margin when tolerances in Coefficients are included.
+\end{itemize}
+
+
+\subsection{Fase Exo-Atmosférica}
+
+
+
+
+\end{document}

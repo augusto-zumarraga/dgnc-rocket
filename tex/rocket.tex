@@ -1,0 +1,154 @@
+\documentclass[10pt,a4paper]{book}
+\usepackage{subfiles}
+\usepackage{dgnc}
+\graphicspath{ {./imag/} }
+
+% modificamos el pié de página para las versiones preliminares
+\fancyfoot[RE,LO]{\small{versión 0.59 - pág.\thepage}}
+
+% marca de agua que diga que esto está en construcción
+%\usepackage[printwatermark]{xwatermark}
+%\newwatermark[allpages,color=gray!50,angle=45,scale=3,xpos=0,ypos=0]{EN CONSTRUCCION}
+\usepackage{draftwatermark}
+\SetWatermarkText{EN CONSTRUCCION}
+\SetWatermarkScale{0.5}
+%\SetWatermarkColor[gray]{0.5}
+%\SetWatermarkFontSize{2cm}
+%\SetWatermarkAngle{30}
+\SetWatermarkLightness{0.95}
+
+% _____________________________________________________________________________ Carátula
+\begin{document}
+
+\frontmatter
+	\thispagestyle{cover}
+	
+	\title{Lanzadores Espaciales}
+	\author{Augusto Zumarraga, ...}
+	\date{Abril de 2024}
+	%\maketitle
+	
+%	\newgeometry and \restoregeometry
+	
+	\pagenumbering{gobble}
+	
+	\hspace{-4.45cm}
+		\begin{minipage}[t]{\paperwidth}
+			\centering
+			\includegraphics[width=\linewidth]{art/soyuz-3} 
+		\end{minipage}
+ 
+		\hspace*{2cm}
+		\begin{flushright}
+			{\fontsize{40}{50}\selectfont
+				\textbf{\textsl{Lanzadores Espaciales}}\\
+			}
+			{
+			\Huge\textit{Ingeniería Aeroespacial - Edición 2024}
+			}
+			
+			\vspace{1cm}
+			
+			\Large Augusto Zumarraga
+		\end{flushright}
+
+\begin{sloppypar}
+
+% _____________________________________________________________________________ Indice
+\tableofcontents
+
+%	\chapter{Prefacio}
+%	En este trabajo se persiguen dos objetivos principales: 
+%	
+%	\begin{itemize}[leftmargin=3cm]
+%		\item plantear un paradigma unificado para el análisis dinámico, independientemente de la naturaleza física del proceso analizado
+%		\item presentar enfoques para construir modelos dinámicos de estructuras y vehículos aeroespaciales
+%	\end{itemize}
+%
+%	Además de manejar el cálculo diferencial es fundamental para comprender los conceptos aquí presentados dominar algunos aspectos básicos del álgebra lineal tales como producto matricial, inversa y traspuesta de una matriz, y las propiedades características de matrices cuadradas (autovalores y autovectores).
+%	\bigskip
+%	
+%	En el primer capítulo se plantea un enfoque amplio para sistematizar el análisis de los procesos dinámicos recurriendo al modelo de estados y el análisis de equilibrio y estabilidad en el espacio de estados. 
+%	A partir de esto se plantea la linealización del modelo para poder luego describir el comportamiento de forma universal a partir de modos naturales caracterizados por autovalores y autovectores de la matriz dinámica.
+%	
+%	Para este capítulo resultan fundamentales los conceptos de campo vectorial, serie de Taylor y transformada de Laplace.
+%	\bigskip
+%	
+%	En el segundo capítulo se plantea el modelado de perturbaciones determinísticas y el análisis de respuesta dinámica en el dominio del tiempo.
+%	
+%	Se Introduce la matriz de transferencia para el análisis de respuesta a perturbaciones determinísticas, a partir de lo cual presentamos luego el análisis en frecuencia para perturbaciones periódicas, y con este el análisis espectral para perturbaciones aleatorias.
+%	
+	
+% _____________________________________________________________________________ Capítulo 1
+\mainmatter
+\pagestyle{fancy}
+
+%	\setlength{\parindent}{0cm} % Default is 15pt.
+	%	\hangindent=3cm %This paragraph has an extra indentation at the left.
+	% \setlength{\parskip}{4mm plus2mm minus2mm}
+	
+	\chapter{Trayectoria}
+		\begin{center}
+			\includegraphics[width=1.02\linewidth]{art/trajectory-2}
+		\end{center}
+		\section{Introducción}
+		\subfile{intro}
+		\section{Trayectoria}
+		\subfile{trayectoria}
+
+%		\section{Modelos}
+%		\subfile{modelado}
+%		\subfile{estados}
+%		\subfile{liapunov}
+%		\section{Modelos Lineales}
+%		\subfile{lineales}
+%		\subfile{modos}
+%		\subfile{solucion}
+
+	\chapter{Dinámica}
+		\begin{center}
+			\includegraphics[width=1.02\linewidth]{art/starship-attitude}
+		\end{center}
+ 		\section{Modelo de cuerpo rígido}
+		\subfile{rigido}
+ 		\section{Modelo estructural}
+		\subfile{estructural}
+ 		\section{Modelo aeroelástico}
+		\subfile{elastico}
+ 		\section{Cómputos}
+		\subfile{computos}
+ 		\section{Simulación}
+		\subfile{nav-sim}
+		\subfile{elastic-sim}
+
+	\chapter{Control de Vuelo}
+		\begin{center}
+			\includegraphics[width=1.02\linewidth]{art/falcon-staging}
+		\end{center}
+		\section{Guiado}
+		\subfile{guiado}
+ 		\section{Control}
+		\subfile{control}
+		
+
+	\appendix
+	\chapter{Apéndices}
+		\section{Aerodinámica}
+		\subfile{aero}\label{apnd:aero}
+		\pagebreak
+		\section{Interpolación}
+		\subfile{bicubic}\label{apnd:spline}
+		%\subfile{turbulencia}\label{apnd:turbulencia}
+		%\subfile{aeroelasticidad}\label{apnd:aeroelasticidad}
+
+\backmatter
+	
+	\listoffigures
+	%\listoftables
+
+	\bibliographystyle{alpha}
+	\bibliography{dgnc_biblio}{}
+
+
+\end{sloppypar}
+\end{document}

@@ -1,0 +1,74 @@
+\documentclass[rocket.tex]{subfiles}
+
+\begin{document}
+
+\subsection{Modos elásticos}
+
+La dinámica de un modo elástico lineal puede expresarse mediante un modelo de estados de la forma:
+\begin{equation}
+	\begin{Bmatrix} \dot{\eta}_j \\ \dot{v}_j \end{Bmatrix}
+	=
+	\begin{bmatrix} 0 & 1 \\ -\omega_j^2 & -2 \xi_j \omega_j  \end{bmatrix}
+	\begin{Bmatrix} \eta_j \\ v_j \end{Bmatrix}
+	+
+	\begin{bmatrix} 0 \\ b_j \end{bmatrix}
+	f_j 
+\end{equation}
+donde $v_j = \dot{\eta}_j$ y $b_j = m_j^{-1}$.
+Para los modelos lineales puede obtenerse una solución exacta, de lo cual, para tiempo discreto se obtiene:
+\begin{equation}
+	\vect{x}_{k+1} = \mtx{\Phi}(t_s)\, \vect{x}_k + \int_0^t \mtx{\Phi}(t_s) dt\, \mtx{B}\, \vect{u}_k 
+\end{equation}
+donde $\mtx{\Phi}(t)$ es la matriz de transición de estados.
+Para encontrarla aplicamos transformada de La place al modelo de tiempo continuo:
+\begin{equation}
+	\begin{Bmatrix} \eta_j(s) \\ v_j(s) \end{Bmatrix}
+	=
+	\mtx{\Phi}(s) 
+	\left[
+	\begin{Bmatrix} \eta_j(0) \\ v_j(0) \end{Bmatrix}
+	+
+	\begin{bmatrix} 0 \\ b_j \end{bmatrix}
+	f_j(s) 
+	\right]
+\end{equation}
+donde $\mtx{\Phi}(s)$es la Transformada de Laplace de la Matriz de Transición de Estados
+\begin{equation}
+	\mtx{\Phi}(s) 
+	=
+	\frac{1}{s^2 + 2\xi\omega s + \omega^2}
+	\begin{bmatrix} s+2\xi\omega & 1 \\ -\omega^2 & s \end{bmatrix}
+\end{equation}
+Anti-transformando:
+\begin{equation}
+	\mtx{\Phi}(t) =
+	\begin{bmatrix} \phi_{11}(t) & \phi_{12}(t) \\ \phi_{21}(t) & \phi_{22}(t) \end{bmatrix}
+\end{equation}
+donde:
+\begin{align}
+	\phi_{21}(t) &= -\omega / \hat{\xi}\, e^{-r t} \sin\left(\omega_d t\right) \\
+	\phi_{22}(t) &= -e^{-r t}/\hat{\xi} \, \sin\left(\omega_d t - \beta\right) \\
+	\phi_{12}(t) &= -\phi_{21}(t)/\omega^{2}  \\
+	\phi_{11}(t) &= \phi_{22}(t) + r\, \phi_{12}(t) 
+\end{align}
+con las sustituciones:
+\begin{align}
+	r = \xi\omega     \quad , \quad 
+	\omega_d = \omega \sqrt{1 - \xi^2}    \quad , \quad 
+	\hat{\xi} = \sqrt{1 - \xi^2}     \quad , \quad 
+	\beta = \tan^{-1}\hat{\xi}/\xi
+\end{align}
+Para la matriz de entradas se debe calcular su integral:
+\begin{align}
+	\int \phi_{22}(t) dt &= \phi_{12}(t) \\
+	\int \phi_{21}(t) dt &= e^{-r t}/\hat{\xi} \, \sin\left(\omega_d t + \beta\right) - 1\\
+	\int \phi_{12}(t) dt &= -\int \phi_{21}(t) dt /\omega^{2}  \\
+	\int \phi_{11}(t) dt &= \int \phi_{22}(t) dt + r\, \int \phi_{12}(t) dt 
+\end{align}
+
+
+La influencia de la deformación elástica y sus derivadas sobre distintas variables de salida debe determinarse mediante la forma modal correspondiente, teniendo en cuenta que:
+
+
+
+\end{document}

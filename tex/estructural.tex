@@ -1,0 +1,182 @@
+\documentclass[rocket.tex]{subfiles}
+
+\begin{document}
+
+\subsection{Modelo en Coordenadas Modales}
+
+Cualquier modelo mecánico lineal de N grados de libertad puede escribirse de la forma:
+\begin{equation*}
+	\mtx{M}\ddot{\vect{q}} + \mtx{K} \vect{q} = \mtx{F} \vect{u} 
+\end{equation*}
+o bien 
+\begin{equation*}
+	\ddot{\vect{q}} + \bar{\mtx{K}} \vect{q} = \bar{\mtx{F}} \vect{u} 
+	\qquad , \qquad 
+	\bar{\mtx{K}} = \mtx{M}^{-1}\mtx{K} 
+	\qquad , \qquad 
+	\bar{\mtx{F}} = \mtx{M}^{-1}\mtx{F} 
+\end{equation*}
+donde $\vect{q}$ es el vector de coordenadas generalizadas y $\vect{u}$ el de perturbaciones. 
+Esto puede llevarse a coordenadas modales desacopladas utilizando como transformación la matriz modal $\mtx{\Lambda}$ de $\bar{\mtx{K}}$, es decir, sustituir:
+\begin{equation}\label{ecu:generalized-to-modal}
+	\vect{q} = \mtx{\Lambda} \vect{\eta}
+\end{equation}
+lo que resultará de la forma:
+\begin{equation}\label{ecu:perturbed-modal-mtx}
+	\left\{\mtx{\Lambda}\ddot{\vect{\eta}}\right\} + \bar{\mtx{K}} \left\{\mtx{\Lambda} \vect{\eta}\right\} = \bar{\mtx{F}} \vect{u}
+	\qquad \rightarrow \qquad
+	\ddot{\vect{\eta}} + \mtx{\lambda} \vect{\eta} = \mtx{P} \vect{u}
+\end{equation}
+donde $\mtx{P} = \mtx{\Lambda}^{-1} \bar{\mtx{F}}$ y la matriz $\mtx{\lambda}$ es diagonal. 
+
+De forma expandida en coordenadas modales la ecuación matricial de segundo orden resulta:
+\begin{align*}%\label{ecu:modal-coordinates-model}
+	\begin{Bmatrix} \ddot{\eta}_1 \\ \ddot{\eta}_2 \\ \vdots \\ \ddot{\eta}_n \end{Bmatrix} 
+	+
+	\begin{bmatrix}
+		\lambda_1 & 0 & \cdots & 0 \\
+		0 & \lambda_2 & \cdots & 0 \\
+		\vdots & \vdots & \ddots & \vdots \\
+		0 & 0 & \cdots & \lambda_n
+	\end{bmatrix}  
+	\begin{Bmatrix} \eta_1 \\ \eta_2 \\ \vdots \\ \eta_n \end{Bmatrix}  
+	=
+	\begin{bmatrix}
+		p_{11} & \cdots & p_{1m}\\
+		p_{21} & \cdots & p_{2m}\\
+		\vdots       & \ddots & \vdots \\
+		p_{n1} & \cdots & p_{nm}
+	\end{bmatrix}
+	\begin{Bmatrix} u_1 \\ \vdots \\ u_m \end{Bmatrix}
+\end{align*}
+El lado derecho expresa el efecto de las las fuerzas generalizadas sobre las aceleraciones modales. 
+Una fila de la matriz $\mtx{P}$ indica como las perturbaciones se combinan para estimular un determinado modo natural. 
+\bigskip
+
+Con el modelo en coordenadas modales se puede obtener un modelo de estados a partir de la ecuación \eqref{ecu:state-ndof}, 
+de la misma forma que se haría con la ecuación matricial de segundo orden original.
+
+Para las salidas la forma general de la ecuación correspondiente para un modelo dinámico lineal es:
+\begin{equation}
+	\vect{y} = \mtx{C}\vect{x} + \mtx{D}\vect{u} 
+\end{equation}
+Si solo nos interesa observar deformaciones o solicitaciones estructurales:
+\begin{equation}
+	\vect{y} = \mtx{C}\vect{q} 
+\end{equation}
+Al llevar el modelo dinámico a coordenadas generalizadas se usa la sustitución \eqref{ecu:generalized-to-modal} también para la ecuación de salidas:
+\begin{equation}\label{ecu:modal-def-output}
+	\vect{y} = \bar{\mtx{C}}\vect{\eta} 
+	\qquad , \qquad 
+	\bar{\mtx{C}} = \mtx{C}\mtx{\Lambda} 
+\end{equation}
+
+\subsection{Modelo de Orden Reducido}
+
+Agrupando las coordenadas modales en dos vectores $a$ y $b$ se puede organizar la ecuación \eqref{ecu:perturbed-modal-mtx} en la forma:
+\begin{align*} 
+	\begin{Bmatrix} \ddot{\vect{\eta}}_a \\ \ddot{\vect{\eta}}_b \end{Bmatrix} 
+	+
+	\begin{bmatrix} \vect{\lambda}_a & 0 \\ 0 & \vect{\lambda}_b \end{bmatrix}  
+	\begin{Bmatrix} \vect{\eta}_a \\ \vect{\eta}_b \end{Bmatrix}  
+	=
+	\begin{bmatrix} \mtx{P}_a \\ \mtx{P}_b \end{bmatrix}
+	\vect{u} \\
+	\vect{y} = \begin{bmatrix} \mtx{C}_a & \mtx{C}_b \end{bmatrix}
+	           \begin{Bmatrix} \vect{\eta}_a \\ \vect{\eta}_b \end{Bmatrix}  
+\end{align*}
+siendo $\vect{\lambda}_a$ y $\vect{\lambda}_b$ submatrices diagonales.
+Si en $b$ se incluyen los modos que puedan considerarse de alta frecuencia para un determinado análisis, es posible despreciar su dinámica. 
+Esto equivale a asumir $\ddot{\vect{\eta}}_b \approx 0$ y reducir el modelo a:
+\begin{align*} 
+	\ddot{\vect{\eta}}_a + \vect{\lambda}_a \vect{\eta}_a
+	=
+	\mtx{P}_a \vect{u}
+	\qquad , \qquad 
+	\vect{\eta}_b = \vect{\lambda}_b^{-1} \mtx{P}_b \vect{u}
+\end{align*}
+El término de la derecha contempla la contribución a la deformación estática de los modos de alta frecuencia.
+Debe notarse las filas de la matriz $\mtx{P}_b$ para aquellas variables de salida que representen velocidades o aceleraciones serán nulas, 
+ya que este término da cuenta solo del aporte de los modos de alta frecuencia en régimen estacionario ($\vect{\dot{q}} = \vect{\ddot{q}} = 0$).
+
+La ecuación de salida para desplazamientos resulta entonces:
+\begin{align*} 
+	\vect{y} = \mtx{C}_a \vect{\eta}_a + \mtx{C}_b \vect{\lambda}_b^{-1} \mtx{P}_b \vect{u}
+\end{align*}
+El modelo de estados reducido queda:
+\begin{align}\label{ecu:reduced-mec-mdl} 
+	\begin{Bmatrix} \dot{\vect{\eta}}_a \\ \ddot{\vect{\eta}}_a \end{Bmatrix} 
+	&=
+	\begin{bmatrix} \mtx{0} & \mtx{I} \\ -\vect{\lambda}_a & \mtx{0} \end{bmatrix}  
+	\begin{Bmatrix} \vect{\eta}_a \\ \vect{\dot{\eta}}_a \end{Bmatrix}  
+	+
+	\begin{bmatrix} \mtx{0} \\ \mtx{P}_a \end{bmatrix}
+	\vect{u} 
+	\\ \nonumber 
+	\vect{y} &= \begin{bmatrix} \mtx{C}_a & \mtx{0} \end{bmatrix}
+			    \begin{Bmatrix} \vect{\eta}_a \\ \vect{\dot{\eta}}_a \end{Bmatrix}  
+			  + \left[\mtx{C}_b \vect{\lambda}_b^{-1} \mtx{P}_b\right] \vect{u}
+\end{align}
+Si el interés se centra cierta en alguna combinación de velocidades se tendría que:
+\begin{align*} 
+	\vect{y} = \mtx{C}_a \vect{\dot{\eta}}_a =
+	\vect{y} = \begin{bmatrix} \mtx{0} & \mtx{C}_a \end{bmatrix}
+	\begin{Bmatrix} \vect{\eta}_a \\ \vect{\dot{\eta}}_a \end{Bmatrix}  
+	+ \mtx{0}\ \vect{u}
+\end{align*}
+y si se tratase de aceleraciones:
+\begin{align*} 
+	\vect{y} = \mtx{C}_a \vect{\ddot{\eta}}_a 
+	         = - \begin{bmatrix} -\mtx{C}_a \vect{\lambda}_a & \mtx{0} \end{bmatrix}
+	             \begin{Bmatrix} \vect{\eta}_a \\ \vect{\dot{\eta}}_a \end{Bmatrix}  
+	             + \left[\mtx{C}_a \mtx{P}_a\right] \vect{u}  
+\end{align*}
+
+%\pagebreak
+%
+%\begin{shaded}
+%
+%Supongamos que ya contamos con las matrices de masa $\mtx{M}$ y rigidez $\mtx{K}$, la matriz de perturbación $\mtx{F}$ y la de salida $\mtx{C}$.
+%Podemos calcular la matriz modal y realizar el cambio de coordenadas:
+%
+%\begin{lstlisting}[language=Matlab, xleftmargin=2.5cm, basicstyle=\small]
+%K_ = M\K;
+%[V,L] = eig(K_, 'vector');
+%
+%P = V\(M\F); % cuidado con el orden deL operador '\'
+%C = C*V;
+%\end{lstlisting}
+%
+%Podemos ordenar los modos naturales en orden creciente de frecuencias, 
+%y particionar las matrices para construir un modelo reducido de orden $nr$:
+%
+%\begin{lstlisting}[language=Matlab]
+%% ordenamos de menos a mayor, y en p guardamos los índices (filas) 
+%% del correspondiente ordenamiento original 
+%[~,p] = sort(L); 
+%
+%ka = p(1:nr);     % indices para los modos de baja frecuencia 
+%kb = p(nr+1:end); % indices para los modos de alta frecuencia 
+%
+%La = diag(L(ka)); % matrices lambda de baja y alta frecuencia
+%Lb = diag(L(kb));
+%Pa = P(ka,:);     % matrices de perturbación para modos 
+%Pb = P(kb,:);     % de baja y alta frecuencia
+%Ca = C(:,ka);     % relación entre las salidas y los modos 
+%Cb = C(:,kb);     % de baja y alta frecuencia
+%\end{lstlisting}
+%
+%Con esto podemos construir el modelo de estados de orden reducido:
+%\begin{lstlisting}[language=Matlab]
+%A  = [zeros(nr) eye(nr)
+%     -La        zeros(nr)];
+%B  = [zeros(size(Pa))
+%      Pa];
+%C  = [Ca zeros(size(Ca))];
+%D  = Cb*(Lb\Pb);
+%Me = ss(A, B, C, D);
+%\end{lstlisting}
+%
+%\end{shaded}
+
+\end{document}

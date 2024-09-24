@@ -1,0 +1,169 @@
+\documentclass[rocket.tex]{subfiles}
+
+\begin{document}
+
+\subsection{Modelo aerodinámico cuasi-estacionario}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{aero/msdat-ref}
+	\caption{}
+	\label{fig:msdat-ref}
+\end{figure}
+
+Datcom computa los coeficientes aerodinámicos para diferentes ángulos de incidencia y número de Mach.
+En la figura \ref{fig:msdat-ref} se muestran las referencias para los coeficientes calculados \cite{msdat-2014}.
+
+Los coeficientes son:
+\bigskip
+
+\begin{tabular}{c | l}
+	CN	& Normal Force Coefficient (body axis) \\
+	CL	& Lift Coefficient (wind axis) \\
+	CM	& Pitching Moment Coefficient (body axis) \\
+	Xcp	& Center of Pressure in calibers from the moment reference center \\
+	CA	& Axial Force Coefficient (body axis) \\
+	CD	& Drag Coefficient (wind axis) \\
+	CY	& Side Force Coefficient (body axis) \\
+	Cn	& Yawing Moment Coefficient (body axis) \\
+	Cl	& Rolling Moment Coefficient (body axis) \\
+	CNa	& Normal force coefficient derivative with angle of attack \\
+	Cma	& Pitching moment coefficient derivative with angle of attack \\
+	CYb	& Side force coefficient derivative with sideslip angle \\
+	Cnb	& Yawing moment coefficient derivative with sideslip angle (body axis) \\
+	Clb	& Rolling moment coefficient derivative with sideslip angle (body axis)
+\end{tabular}
+\bigskip
+
+For body alone or body plus fin combinations, the following parameters are also computed, all in the body axis system:
+\bigskip
+
+\begin{tabular}{c | l}
+	CMq	& Pitching moment coefficient derivative with pitch rate \\
+	CNq	& Normal force coefficient derivative with pitch rate \\
+	CAq	& Axial force coefficient derivative with pitch rate \\
+	CMa	& Pitching moment derivative with rate of change of angle of attack \\
+	CNa	& Normal force derivative with rate of change of angle of attack \\
+	Clp	& Rolling moment coefficient derivative with roll rate \\
+	Cnp	& Yawing moment coefficient derivative with roll rate \\
+	CYp	& Side force coefficient derivative with roll rate \\
+	Clr	& Rolling moment coefficient derivative with yaw rate \\
+	Cnr	& Yawing moment coefficient derivative with yaw rate \\
+	CYr	& Side force coefficient derivative with yaw rate
+\end{tabular}
+\bigskip
+
+The output units of the aerodynamic derivatives can be in degrees or radians and is controlled by the DERIV control card. 
+This control card has no effect on input angles, input angles are always specified in degrees.
+Partial output results, which detail the components used in the calculations, are also optionally available using the PART and/or BUILD control cards.
+
+
+
+\subsubsection{Derivativas}
+
+
+Si el punto de referencia para los coeficientes aerodinámicos no coincide con el CG, para los ángulos de incidencia deberá considerarse que:
+\begin{equation*} 
+	\Delta \bar{w} = \Delta w + q \cdot d_{cg}
+	\quad , \quad 
+	\Delta \bar{v} = \Delta v + r \cdot d_{cg}
+\end{equation*}
+donde la barra indica las variables referidas al centro de referencia para los momentos aerodinámicos, mientras que $d_{cg}$ es la distancia del punto de referencia para el momento aerodinámico en la terna \textit{b} (positivo si está más adelante del CG).
+y por lo tanto:
+\begin{equation*} 
+	\Delta \bar{\alpha} \approx \frac{1}{V_0} \Delta \bar{w} 
+	                \approx \Delta \alpha + \frac{d_{cg}}{V_0} q
+\end{equation*}
+Por lo tanto, al considerar variaciones respecto del ángulo de ataque se tendrá que:
+\begin{align*} 
+	c_{f_\alpha} \bar{\alpha} + c_{f_q} \frac{1}{\bar{\omega}} q &= 
+	c_{f_\alpha} \alpha + c_{f_\alpha} \frac{d_{cg}}{V_0} q + c_{f_q} \frac{1}{\bar{\omega}} q \\
+	&= 
+	c_{f_\alpha} \alpha + \left(c_{f_\alpha} \frac{d_{cg}}{V_0} + c_{f_q} \frac{1}{\bar{\omega}}\right) q \\
+	&= 
+	c_{f_\alpha} \alpha + \left(c_{f_\alpha} 2 \frac{d_{cg}}{\bar{l}} + c_{f_q}\right) \frac{1}{\bar{\omega}} q 
+	\\
+	\rightarrow \bar{c}_q = c_{f_\alpha} 2 \frac{d_{cg}}{\bar{l}} + c_{f_q}
+\end{align*}
+
+
+\bigskip
+
+\todo{REVISAR Y COMPLETAR}
+
+
+\subsection{Cargas Aerodinámicas para Fuselaje Deformado}
+
+En \cite{NACA-TR-1048} se destaca que de acuerdo al trabajo de Munk \cite{munk-airship} el flujo subsónico en cuerpos esbeltos puede obtenerse mediante un análisis bidimensional de cada sección frontal; lo cual puede extenderse a régimen supersónico en tanto la componente normal de la velocidad resulte subsónica.
+De la teoría de cuerpos esbeltos (\textit{slender body}) se concluye que en una sección arbitraria a lo largo del fuselaje:
+\begin{equation*} 
+	f \approx 2 \sigma_0 \frac{dS}{dx} \alpha 
+\end{equation*}
+donde $dS/dx$ es la derivada de la área frontal con la longitud axial en cada sección y $\sigma_0$ es la presión dinámica de la corriente libre. 
+A esto hay que agregar un coeficiente de fuerza por efectos viscosos. 
+
+Según \cite{NACA-TR-1048} ``...\textit{a excepción de las secciones próximas a la proa, la capa límite del flujo transversal estará lo suficientemente desarrollada como para adoptar las características del flujo estacionario para la sección de un cilindro circular al número de Mach y Reynolds correspondiente a la velocidad transversal a lo largo del cuerpo}''.
+
+Se propone entonces como primera aproximación:
+\begin{equation}\label{ecu:slender-body} 
+	f = \sigma_0 \left(\frac{dS}{dx} \sin 2 \alpha \,\cos \frac{\alpha}{2} + D\, c_{D_{\alpha = 90^0}} \sin ^2 \alpha \right) 
+\end{equation}
+donde $D$ es el diámetro de la sección, $c_{D_{\alpha = 90^0}}$ es el coeficiente de resistencia de un cilindro con flujo transversal en las condiciones de Reynolds y Mach en dicha sección.
+
+Siendo esto una estimación, se aproximan las funciones trigonométricas para ángulos pequeños:
+\begin{equation*} 
+	f = \sigma_0 \left(\frac{dS}{dx} 2 \alpha + D\, c_D \alpha^2 \right) 
+\end{equation*}
+% donde $w_e(x) = \phi(x) \dot{\eta}$, $w_r(x) = w - x\cdot q$  y $C_x = D\, c_D/V_0$.
+Para el ángulo de ataque se tiene que:
+\begin{equation*} 
+	\alpha = \tan^{-1} \frac{w}{u} \approx \frac{w}{V_0}
+\end{equation*}
+donde la velocidad normal $w$ se puede obtener como superposición de la velocidad de deformación y el movimiento de cuerpo rígido.
+\begin{equation*} 
+	w(x) = \dot{z}_e(x) + w_r(x) 
+	\qquad , \qquad 
+	w_r(x) = w - x\cdot q
+\end{equation*}
+
+\begin{shaded}
+
+De resultados experimentales se concluye que para cuerpos con elevada relación de aspecto, ``...\textit{las características calculadas incluyendo efectos viscosos muestran un buen ajuste con los resultados experimentales, mientras que la teoría potencial es claramente inadecuada excepto para  muy pequeños ángulos de ataque}''.
+
+Para estimar $c_{D_{\alpha = 90^0}}$ se propone considerar las características de un cilindro circular con diámetro constante dado por:
+\begin{equation*} 
+	D' = \frac{A_p}{L}
+\end{equation*}
+siendo $A_p$ el área en planta, $L$ la longitud del cuerpo.
+El coeficiente de resistencia para este cilindro ficticio de longitud finita se aproxima determinando primero el correspondiente a un cilindro de sección constante $D'$ con número de Mach y Reynolds:
+\begin{equation*} 
+	\mathbb{R}_c = \frac{V_0 D'}{\nu}\, \sin \alpha  
+	\qquad , \qquad
+	\mathbb{M}_c = \mathbb{M}_0\, \sin \alpha 
+\end{equation*}
+y luego corrigiendo estos resultados con la relación de aspecto $L/D'$ (en el orden de $0.7$). 
+\bigskip
+
+De \cite{NACA-TR-619} se observa para un cilindro un coeficiente del orden de $1.2$, incrementándose hasta $1.55$ para $V/V_c = 0.56$, siendo $V_c$ la velocidad crítica a la cual aparece desprendimiento por la aparición de una onda de choque (\textit{compressibility burble}).  
+\bigskip
+
+En \cite{hodges-2004,chae-hodges-2003} se adopta el modelo propuesto no-estacionario propuesto por Bisplinghoff en 1955:
+\begin{equation*} 
+	f = \rho_0 \frac{dS}{dx} \left(V_0^2 \frac{\partial \lambda}{\partial x} + V_0 \frac{\partial \lambda}{\partial t}\right)
+	+ c_D \eta\, D\, \sigma_0 \alpha^2 
+	- \rho_0 S  \left(V_0^2 \frac{\partial^2 \lambda}{\partial x^2} + 2V_0\frac{\partial^2 \lambda}{\partial x\, \partial t} + \frac{\partial^2 \lambda}{\partial t^2}\right)
+\end{equation*} 
+donde $\lambda = u_b + \alpha(x - x_0)$, siendo $x_0$ la posición del punto de referencia t $\eta$ el cociente entre el coeficiente de resistencia de un cilindro de sección circular de longitud infinita respecto del de longitud finita.
+
+\end{shaded}
+
+El término viscoso es no lineal, por lo cual en primer término solo consideraremos la fuerza normal por presión.
+\begin{equation*} 
+	f \approx \sigma_0\, 2\, c_N(x) \frac{\dot{z}_e(x) + (w - x\cdot q)}{V_0}
+	\qquad , \qquad
+	c_N(x) = S'(x)  
+\end{equation*}
+ 
+ 
+ 
+\end{document}

@@ -1,0 +1,218 @@
+\documentclass[rocket.tex]{subfiles}
+
+\begin{document}
+
+
+El plan de vuelo se organiza en las siguientes fases:
+
+\paragraph{Primera etapa}
+
+El vuelo de primera etapa es completamente atmosférico, define la condición inicial para la trayectoria de inserción y debe superar el punto de máxima presión dinámica.
+
+Este se organiza en tres fases:
+\bigskip
+
+\begin{enumerate}[leftmargin=3cm,itemsep=0cm]
+\item \textbf{despegue} (lift off): vuelo vertical hasta alcanzar una cierta altura de seguridad  
+\item \textbf{rotación} (pitch maneuver): rotación hasta alcanzar el ángulo inicial para el giro gravitatorio
+\item \textbf{alivio de cargas} (load relief): vuelo con ángulos de ataque y deslizamiento nulos hasta el MECO
+\end{enumerate}
+\bigskip
+
+\paragraph{Segunda etapa}
+
+El vuelo de segunda etapa empieza en el momento de la separación, la cual se produce a nivel estratosférico con baja presión dinámica, 
+por lo cual es posible maniobrar sin producir grandes cargas dinámicas. 
+ 
+Las fase son:
+\bigskip
+    
+\begin{enumerate}[leftmargin=3cm,itemsep=0cm]
+\item \textbf{vuelo libre} (coasting): vuelo no acelerado hasta el encendido del motor de segunda etapa )
+\item \textbf{guiado} (control activo de la inclinación de la velocidad) hasta la separación de la cofia
+\item \textbf{guiado} (control activo de la inclinación de la velocidad) hasta la inserción orbital
+\end{enumerate}
+\bigskip
+
+
+\subsection{Fase Atmosférica}
+
+En las primeras dos fases de primera etapa es necesario controlar la actitud respecto de una terna geográfica.
+En la última fase, si el vehículo es aerodinámicamente estable, el control de actitud solo necesita proveer amortiguamiento anulando la velocidad angular en los tres ejes.
+
+\subsubsection{Error de actitud}
+
+Para el cómputo del error de actitud y la determinación de las rotaciones necesarias en cabeceo/guiñada y rolido se calcula primero el cuaterión de error:
+\begin{equation}
+	\vect{q}_b^r = \clrb{\vect{q}_n^r} \cdot \vect{q}_b^n
+	\qquad \rightarrow \qquad 
+	\clrb{\vect{q}_n^r} = \vect{q}_b^r \cdot \vect{q}_b^{n*}
+\end{equation}
+donde $\vect{q}_b^r$ es el cuaternión de referencia, $\vect{q}_b^n$ es el cuaternión actual y $\vect{q}_n^r$ es el cuaternión de error.
+También puede plantearse que:
+\begin{equation}
+	\vect{q}_r^b = \vect{q}_n^b \cdot \clrb{\vect{q}_r^n}
+	\qquad \rightarrow \qquad 
+	\clrb{\vect{q}_r^n} = \vect{q}_b^r \cdot \vect{q}_b^n
+\end{equation}
+\todo{[REVISAR]}
+
+\begin{lstlisting}[xleftmargin=3cm,language=matlab]
+function rot = att_err(qnb, qref)
+    qerr = qref' * qnb;
+    eul  = qerr.as_euler;
+    rot  =-[eul.pitch  
+            eul.yaw 
+            eul.roll];
+end
+\end{lstlisting}
+
+Preventivamente podría ajustarse la velocidad angular de referencia a partir de los ángulos de ataque y deslizamiento, pero estos no son directamente medibles.
+Por lo tanto, esta cuestión podría asociarse a las aceleraciones laterales, pero se debe garantizar una calibración precisa del offset y la alineación de los acelerómetros, para evitar desvíos excesivos en la trayectoria. 
+
+\subsubsection{Mapeo de actitud entre terna ECEF y terna geográfica}
+
+La rotación entre terna ECEF y terna geográfica puede determinarse mediante matrices una rotación de de longitud $\lambda$ alrededor del eje $z^e$ seguida de una de latitud $-\phi$ alrededor del eje $y^e$:
+\begin{equation}
+	\mtx{C}_e^g = \mtx{C}_y(\phi)^T \cdot \mtx{C}_z(\lambda)   
+=	
+	\begin{bmatrix}
+		c_y \cdot c_z &  c_y \cdot s_z & s_y \\
+	             -s_z &            c_z &  0 \\
+	   -c_z \cdot s_y & -s_y \cdot s_z & c_y 	
+	\end{bmatrix}
+\end{equation}
+donde $s_y$ y $c_y$ son el seno y coseno de $\phi$, mientras que $s_z$ y $c_z$ son el seno y coseno de $\lambda$. 
+Esto lleva la terna ECEF a una terna UED (\textit{up/east/down}).
+
+Para llevar esto a terna ENU o NED se debe aplicar una rotación adicional para conmutar ejes:
+\begin{equation*}
+	\mtx{C}_e^g = \mtx{C}_u^g \cdot \mtx{C}_y(\phi)^T \cdot \mtx{C}_z(\lambda)   
+\end{equation*}
+Para terna ENU:
+\begin{equation*}
+	\mtx{C}_u^g
+	=
+	\begin{bmatrix}
+		\phantom{-}0 & \phantom{-}1 & \phantom{-}0 \\
+		\phantom{-}0 & \phantom{-}0 & \phantom{-}1 \\
+		\phantom{-}1 & \phantom{-}0 & \phantom{-}0 
+	\end{bmatrix}
+\end{equation*}
+Para terna NED:
+\begin{equation*}
+	\mtx{C}_u^g
+	=
+	\begin{bmatrix}
+		\phantom{-}0 & \phantom{-}0 & \phantom{-}1 \\
+		\phantom{-}0 & \phantom{-}1 & \phantom{-}0 \\
+		          -1 & \phantom{-}0 & \phantom{-}0 
+	\end{bmatrix}
+\end{equation*}
+De esto resulta que:
+\begin{equation*}
+	\mtx{C}_e^{g_{enu}}
+	=
+	\begin{bmatrix}
+	           -s_z &            c_z &   0 \\
+	 -c_z \cdot s_y & -s_y \cdot s_z & c_y \\
+	  c_y \cdot c_z &  c_y \cdot s_z & s_y
+	\end{bmatrix}
+\end{equation*}
+para terna ENU, y:
+\begin{equation*}
+	\mtx{C}_e^{g_{ned}}
+	=
+	\begin{bmatrix}
+	 -c_z \cdot s_y & -s_y \cdot s_z &  c_y \\
+	           -s_z &            c_z &    0 \\
+	 -c_y \cdot c_z & -c_y \cdot s_z & -s_y
+	\end{bmatrix}
+\end{equation*}
+para terna NED.
+
+\bigskip
+Por otra parte, la rotación entre ternas ENU y NED (en ambas direcciones) la matriz de rotación es:
+\begin{equation*}
+	\mtx{C}_{enu/ned}
+	=
+	\begin{bmatrix}
+		\phantom{-}0 & \phantom{-}1 & \phantom{-}0 \\
+		\phantom{-}1 & \phantom{-}0 & \phantom{-}0 \\
+		\phantom{-}0 & \phantom{-}0 & -1 
+	\end{bmatrix}
+\end{equation*}
+que se corresponde y con el cuaternión:
+\begin{equation*}
+	\vect{q}_g^e = 
+	\begin{Bmatrix}
+    	0 \\ \frac{\sqrt{2}}{2}\
+		\begin{Bmatrix} 1 \\ 1 \\ 0 \end{Bmatrix}
+	\end{Bmatrix}
+\end{equation*}
+
+\clrr{NOTA: No es conveniente expresar relaciones no constantes en cuaterniones, porque pueden darse situaciones indefinidas cuando la traza de la matriz de rotación es próxima a $-1$.}
+
+
+
+
+
+%qS =
+% 
+%                  (cz - sy - cz*sy + 1)^(1/2)/2
+%       (cy*sz)/(2*(cz - sy - cz*sy + 1)^(1/2))
+% -(cy + cy*cz)/(2*(cz - sy - cz*sy + 1)^(1/2))
+%  (sz - sy*sz)/(2*(cz - sy - cz*sy + 1)^(1/2))
+% 
+%Cuaternión ECEF -> TGD
+% 
+%qT =
+% 
+%                 (sy - sz - sy*sz + 1)^(1/2)/2
+% (cy - cy*sz)/(2*(sy - sz - sy*sz + 1)^(1/2))
+%      (cy*cz)/(2*(sy - sz - sy*sz + 1)^(1/2))
+% (cz + cz*sy)/(2*(sy - sz - sy*sz + 1)^(1/2))
+
+
+\subsection{Fase Exo-atmosférica}
+
+Esta fase se dedica completamente a la inserción orbital.
+La actitud respecto del horizonte se ajusta en función de la inclinación del vector velocidad.
+
+En el plano horizontal es necesario mantenerse en el plano orbital requerido.
+
+\paragraph{Plano orbital}
+
+Podemos identificar el plano orbital mediante su versor normal $\vect{n}$.
+
+Para el plano ecuatorial $\vect{n} = \{0\ 0\ 1\}$.
+Aplicamos a este vector una rotación de longitud alrededor del eje $\vect{z}^e$, lo cual define la posición del nodo ascendente; 
+y luego una rotación de latitud alrededor del eje $\vect{y}^e$ en función de la inclinación del plano orbital.
+\bigskip
+
+A partir de los datos de navegación ECEF podemos obtener los datos en terna inercial alineada con el plano orbital, que llamaremos terna \textit{o}.
+
+Si la navegación se realiza en terna ECEF es necesario en cada instante de muestreo computar el cuaternión $\vect{q}_e^o(t)$.
+Para la simulación en terna ECI se debe calcular el cuaternión $\vect{q}_i^e(t)$.
+Debe tenerse presente que la rotación entre terna \textit{i} y terna \textit{o} $\vect{q}_o^i$, que es constante.
+
+%\begin{equation}
+%	\vect{q}_r^b = \vect{q}_n^b \cdot \clrb{\vect{q}_r^n}
+%	\qquad \rightarrow \qquad 
+%	\clrb{\vect{q}_r^n} = \vect{q}_b^r \cdot \vect{q}_b^n
+%\end{equation}
+
+
+\subsection{Herramientas}
+
+\subsubsection{Guiado}
+
+\href{https://www.orbiterwiki.org/wiki/Powered_Explicit_Guidance}{Powered Explicit Guidance (PEG)}
+
+\subsubsection{Optimización}
+
+\href{https://www.psopt.net/downloads}{PSOPT}
+
+
+
+\end{document}

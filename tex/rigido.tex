@@ -1,0 +1,458 @@
+\documentclass[rocket.tex]{subfiles}
+
+\begin{document}
+
+%\subsection{Modelo de cuerpo rígido}
+
+\begin{figure}[b]
+	\centering
+	\includegraphics[width=0.5\linewidth]{rocket/body-axes}
+	\caption{Terna de referencia del cuerpo}
+	\label{fig:body-axes}
+\end{figure}
+
+Al modelar la dinámica de un vehículo es posible considerar coordenadas generalizadas que describan su movimiento como cuerpo no deformado junto con variables asociadas a los modos elásticos. 
+Cuando la deformación elástica es rápida en relación al movimiento del cuerpo no deformado, el vehículo puede modelarse como un cuerpo rígido.
+Posteriormente es posible acoplar los modos elásticos si fuerza necesario.
+\bigskip
+
+Un cuerpo rígido en el espacio tiene seis grados de libertad, lo cual puede asociarse a un vector posición $\vect{r} \in \mathbb{R}^3$ (que no necesariamente necesita estar asociado a un espacio euclideano) y su actitud (pose u orientación) respecto de una terna de referencia, que requiere como mínimo tres componentes $\vect{\theta} \in \mathbb{R}^3$.
+Los cambios de posición y actitud quedan descriptos por un vector de velocidad lineal $\vect{v} = \left\{ u, v , w \right\}$ y otro de velocidad angular $\vect{\omega} = \left\{ p, q , r \right\}$, que podemos referir a una terna solidaria al vehículo (terna móvil, terna del cuerpo, o terna \textit{b}).
+\bigskip
+
+Planteando las ecuaciones cardinales de la mecánica, con el origen de coordenadas de la terna \textit{b} ubicado en el centro de gravedad (ver figura \ref{fig:body-axes}), se tiene que:
+\begin{align*}
+	\frac{d\vect{p}^b}{dt}+\vect{\omega}^b \times \vect{p}^b &=\vect{F}^b
+	\\[4pt]
+	\frac{d\vect{h}^b}{dt}+\vect{\omega}^b \times \vect{h}^b &=\vect{M}^b
+\end{align*}
+donde $\vect{p} = m \vect{v}$ es el vector cantidad de movimiento (el superíndice $^b$ indica que son proyecciones en la terna del cuerpo), siendo $m$ la masa total; $\vect{h} = \mtx{J} \vect{\omega} + \vect{\bar{h}}$ es el momento cinético, donde $\mtx{J}$ el tensor de inercia y $\vect{\bar{h}}$ el momento cinético de las masas rotantes tales como hélices, turbinas, etc. (si las hay); $\vect{F} = \left\{X, Y, Z\right\}$ es la resultante de las fuerzas aplicadas mientras que $\vect{M} = \left\{L, M, N\right\}$ corresponden a los momentos respecto del centro de gravedad del cuerpo rígido.
+%Todo esto está referido a la terna móvil.
+
+Además:
+\begin{align*}
+	\frac{d\vect{p}^b}{dt} &= \dot{m} \vect{v}^b + m \dot{\vect{v}}^b 
+	\\[4pt]
+	\frac{d\vect{h}^b}{dt} &= \dot{\mtx{J}} \vect{\omega}^b + \mtx{J} \dot{\vect{\omega}}^b 
+\end{align*}
+
+Para el caso de un cohete, el término $\dot{m}\vect{v}$ es parte de la fuerza reactiva entre la masa remanente en el vehículo y la masa eyectada, constituida por el empuje de su motor \cite[s.4.3.1, p.75]{tewari_dyn}. 
+Por lo tanto podemos plantear que:
+\begin{equation*}
+	\dot{\vect{v}}^b = -\vect{\omega}^b \times \vect{v}^b + \frac{1}{m(t)} \left(\vect{T}^b + \vect{F}^b\right) + \vect{g}^b 
+\end{equation*}
+donde $m(t)$ es la masa en el instante $t$, $\vect{T}$ es el empuje del motor, $\vect{F}$ la fuerza de perturbación (básicamente aerodinámica) y $\vect{g}$ la aceleración gravitatoria. 
+
+Al modelar las fuerzas $\{X , Y , Z\}$ y momentos $\{L , M , N\}$ , el modelo de cuerpo rígido pasa a absorber los rasgos específicos del vehículo bajo estudio. 
+En el caso de un lanzador espacial debemos considerar aquellos que surgen de fenómenos aerodinámicos, el campo gravitatorio y los sistemas de propulsión auxiliar.
+\bigskip
+
+Suprimiendo el superíndice $^b$ para simplificar la notación, tenemos: 
+
+\begin{align}
+	\label{ecu:cardinal-1-mcte}
+	\dot{\vect{v}} &= -\vect{\omega} \times \vect{v} + \vect{f} + 
+	\frac{1}{m}\vect{T} % \frac{\dot{m}}{m} g_0  I_{sp}\, \hat{\vect{T}}
+	\\
+	\label{ecu:cardinal-2-mcte}
+	\dot{\vect{\omega}}	&= -\mtx{J}^{-1} \left[\vect{\omega}\times \left(\mtx{J}\vect{\omega} + \vect{\bar{h}}\right)\right] + \vect{\tau} - \left[\mtx{J}^{-1} \dot{\mtx{J}}\right] \vect{\omega}
+\end{align}
+en donde $\vect{f}$ es el vector de \textit{fuerza específica} (fuerza por unidad de masa) resultante de las perturbaciones, y $\vect{\tau}$ el vector de aceleraciones angulares ($\vect{\tau}=\mtx{J}^{-1}\vect{M}$) asociado. 
+
+\subsubsection{Aerodinámica}
+
+Los efectos aerodinámicos dependen de los ángulos de incidencia entre el flujo y el cuerpo.
+Si asumimos un modelo de cuerpo rígido, la incidencia puede parametrizarse mediante un ``ángulo de ataque'' y uno de ``deslizamiento''.
+
+\paragraph{Ángulos de incidencia}
+
+Para los ángulos de \textit{ataque} ($\alpha$) y \textit{deslizamiento} ($\beta$) podemos decir que:
+\begin{equation}\label{ecu:incidence-angles}
+	\alpha = \tan^{-1}{\frac{w^b_r}{u^b_r}} \qquad , \qquad \beta=\sin^{-1}{\frac{v^b_r}{V_r}}
+\end{equation}
+donde el subíndice $r$ denota la velocidad relativa entre la del vehículo $\{u^b, v^b, w^b\}$ y la del viento $\{u_w, v_w, w_w\}$, proyectada en la terna-$b$.
+
+Para cálculos de derivada temporal debe tenerse en cuenta que:
+\begin{equation}
+	\frac{d}{dx} \tan^{-1} x = \frac{1}{1 + x^2} 
+%	\frac{d}{dx} \sin^{-1} x = \frac{1}{\sqrt{1 - x^2}} 
+\end{equation}
+con lo cual:
+\begin{equation}\label{ref:alpha-dot}
+	\dot{\alpha} = \frac{1}{1 + \dfrac{w^2}{u^2}} \left(\frac{\dot{w}}{u} - \frac{w}{u^2} \dot{u}\right) 
+	             = \frac{1}{u^2 + w^2} \left(u \dot{w} - w \dot{u}\right)  
+\end{equation}
+
+Si solo se consideran variaciones pequeñas en las tres componentes de la velocidad respecto del valor de equilibrio:
+\begin{equation*}
+	\vect{v} = \begin{Bmatrix} u_e + \Delta u \\ v_e + \Delta v \\ w_e + \Delta w \end{Bmatrix}	 
+	\quad , \quad 
+	u_e \approx V_0 \gg \Delta u,\Delta v,\Delta w, v_e, w_e
+\end{equation*}
+\begin{equation}\label{ecu:alfa_beta_aprox}
+	\Delta \alpha \approx \frac{1}{V_0} \Delta w
+	\quad , \quad 
+	\Delta \beta \approx \frac{1}{V_0} \Delta v
+\end{equation}
+donde llamamos $V_0$ a la velocidad de vuelo en la condición de referencia.
+
+\paragraph{Modelo cuasi-estacionario de fuerzas y momentos}
+
+Adoptando un modelo cuasi-estacionario, para cada componente $j$ de la fuerza usaremos expresiones de la forma:
+\begin{equation}\label{ecu:cuasi-steady-aero-force}
+	F_{a_j} = \sigma \bar{S}\ c_f\left(\mathcal{M},\alpha,\dot{\alpha},\beta\right)
+\end{equation} 
+donde $c_f$ es un coeficiente de fuerza adimensional, $\bar{S}$ es una superficie de referencia (en general la superficie alar); mientras que para los momentos:
+\begin{equation}\label{ecu:cuasi-steady-aero-moment}
+	M_{a_j} = \sigma \bar{S}\ \bar{l}\ c_m\left(\mathcal{M},\alpha,\dot{\alpha},\beta,\vect{\omega}\right) 
+\end{equation} 
+que es similar con el agregado de una longitud de referencia $\bar{l}$, con lo cual el coeficiente de momento $c_m$ también resulta adimensional.
+\bigskip
+
+En particular, considerando un determinado número de Mach, para el momento de cabeceo es común usar la expresión:
+\begin{equation}
+	c_m(\alpha, \dot{\alpha}, q) 
+	= c_m(\alpha) + c_{m_q}\,  \hat{q} + c_{m_{\dot{\alpha}}}\, \hat{\dot{\alpha}}
+\end{equation} 
+donde $c_{m_{\dot{\alpha}}}$ y $c_{m_q}$ son algunas de las denominadas derivativas \textit{dinámicas}, que se determinan para derivadas adimensionalizadas con una velocidad angular de referencia $\bar{\omega}$:
+\begin{equation*}
+%	c_{m_q} = \frac{\partial c_m}{\partial \hat{q}}
+%	\qquad , \qquad 
+	\hat{q} = \frac{1}{\bar{\omega}}\, q
+	\qquad , \qquad 
+	\hat{\dot{\alpha}} = \frac{1}{\bar{\omega}}\, \dot{\alpha}
+	\qquad , \qquad 
+	\bar{\omega} = \dfrac{V}{\bar{l}/2} 
+\end{equation*} 
+La definición $\bar{\omega}$ es la mostrada en \cite[p.~68, sec.4.3]{misdat-um-2014}, \cite[p.~27, sec.3.2.2]{misdat-um-1998}, % \cite[p.~19, sec.3.2.2]{misdat-um-1997}, 
+aunque en otras fuentes \cite[p.~xiv]{misdat-fr-1988} hay una discrepancia en el factor $2$.
+
+%siendo $\hat{\dot{\alpha}}$ y $\hat{q}$ velocidades angulares adimensionalizadas con la velocidad angular de referencia definida por el término $\bar{l}/V$.
+
+
+
+\paragraph{Referencia de los momentos aerodinámicos}
+
+Los coeficientes aerodinámicos de momento se obtienen para un punto de referencia $\vect{p}_r$ que en general no coincide siempre con la posición del centro de gravedad $\vect{p}_{cg}$. 
+Por lo tanto, para computar los momentos en \eqref{ecu:rigit-body-moment-equations} se debe considerar:
+\begin{equation*}
+	\vect{M}^b_{cg} = \vect{M}^b_r + \vect{F}^b \left(\vect{p}^b_{cg} - \vect{p}^b_r\right) 
+\end{equation*}
+Debe tenerse en cuenta que el ángulo de ataque determinado en $\vect{p}_{cg}$ es diferente al de $\vect{p}_r$ si hay velocidad de rotación, ya que tomando cualquier terna de referencia:   
+\begin{equation*}
+	\vect{v}_{cg} = \vect{v}_r + \vect{\omega} \times \left(\vect{p}_{cg} - \vect{p}_r\right) 
+\end{equation*}
+
+%\paragraph{Mapeo de términos aerodinámicos a terna móvil}
+%
+%En general los coeficientes aerodinámicos dan cantidades referidas a una terna alineada con el viento relativo (conocidos como \textit{wind axes} o \textit{stability axes}).
+%La matriz de rotación para alinear el vector velocidad relativa con el eje \textit{x} de la terna móvil es:
+%\begin{align}
+%	\mtx{C}_w^b &= \mtx{C}_\beta \mtx{C}_\alpha = \nonumber
+%	\begin{bmatrix}
+%		\phantom{-}c\left(\beta\right) & s\left(\beta\right)	& 0 \\
+%		-s\left(\beta\right)	       & c\left(\beta\right) 	& 0 \\
+%		\phantom{-}0				   & 0 						& 1
+%	\end{bmatrix} 
+%	\begin{bmatrix}
+%		c\left(\alpha\right)	& 0 & -s\left(\alpha\right) \\
+%		0						& 1 & \phantom{-}0 \\
+%		s\left(\alpha\right)	& 0 & \phantom{-}c\left(\alpha\right)
+%	\end{bmatrix}
+%	\\&=
+%%	\begin{bmatrix}
+%%		\phantom{-}c\left(\alpha\right)c\left(\beta\right) & c\left(\alpha\right)s\left(\beta\right)	& -s\left(\alpha\right) \\
+%%		          -s\left(\beta\right)					   & c\left(\beta\right)				        & \phantom{-}0 \\
+%%		\phantom{-}s\left(\alpha\right)c\left(\beta\right) & s\left(\alpha\right)s\left(\beta\right)	& \phantom{-}c\left(\alpha\right)
+%%	\end{bmatrix}
+%	\begin{bmatrix}
+%			\phantom{-}c(\alpha)c(\beta) & s(\beta)	&           -s(\alpha)c(\beta) \\
+%			         - c(\alpha)s(\beta) & c(\beta)	& \phantom{-}s(\alpha)s(\beta) \\
+%			\phantom{-}s(\alpha)         & 0        & \phantom{-}c(\alpha)
+%	\end{bmatrix}
+%\end{align}
+%Esta matriz permite proyectar cantidades en la terna aerodinámica a la terna móvil.
+
+\subsubsection{Gravedad}
+
+La proyección de la fuerza gravitatoria en la terna móvil depende de la orientación o \textit{actitud} del vehículo. 
+
+La magnitud de la \textit{aceleración} gravitatoria depende de \textit{gravitación} terrestre, y de una componente centrífuga por su rotación, si usamos una terna de referencia solidaria a su superficie. 
+
+Para la gravitación debemos tomar el gradiente del potencial gravitatorio, al cual para un planeta esférico fuera de la superficie terrestre puede expresarse como:
+\begin{equation}
+	U(r) = - \frac{GM}{r}+U_0 \qquad , \qquad r \geq R
+\end{equation}
+Si tomamos $U_0 = U(r \rightarrow \inf) = 0$:
+\begin{equation}
+	U(r) = - \frac{\mu}{r} \qquad , \qquad \mu := GM
+\end{equation}
+siendo $\mu$ el parámetro gravitacional estándar.
+\bigskip
+
+Para la actitud en esta formulación se usarán ángulos de Euler con la definición de Tait-Byan partiendo de una terna terrestre NED, que identificamos como \textit{rumbo}, \textit{cabeceo} y \textit{rolido}: $\vect{\theta} = \left\{ \phi, \theta, \psi \right\}$. 
+
+La matriz de rotación para realizar la proyección de terna terrestre a una móvil resulta:
+
+\begin{align*}
+	\mtx{C}_n^b &= \ \mtx{C}_\phi \mtx{C}_\theta \mtx{C}_\psi = 
+	\begin{bmatrix}
+		1 & \phantom{-}0						& 0 \\
+		0 & \phantom{-}c\left(\phi\right)	& s\left(\phi\right) \\
+		0 & -s\left(\phi\right)	& c\left(\phi\right)
+	\end{bmatrix}
+	\begin{bmatrix}
+		c\left(\theta\right)	& 0 & -s\left(\theta\right) \\
+		0							& 1 & \phantom{-}0 \\
+		s\left(\theta\right)	& 0 &  \phantom{-}c\left(\theta\right)
+	\end{bmatrix}
+	\begin{bmatrix}
+		\phantom{-}c\left(\psi\right) 		& s\left(\psi\right)	& 0 \\
+		-s\left(\psi\right)	& c\left(\psi\right) 	& 0 \\
+		\phantom{-}0							& 0 						& 1
+	\end{bmatrix} 
+	\\&= 
+		\begin{bmatrix}
+			c\left(\theta\right)c\left(\psi\right)
+				& c\left(\theta\right)s\left(\psi\right)
+					& -s\left(\theta\right) \\
+			s\left(\phi\right)s\left(\theta\right)c\left(\psi\right)-c\left(\phi\right)s\left(\psi\right)
+				& s\left(\phi\right)s\left(\theta\right)s\left(\psi\right)+c\left(\phi\right)c\left(\psi\right)
+					& s\left(\phi\right)c\left(\theta\right) \\
+			c\left(\phi\right)s\left(\theta\right)c\left(\psi\right) + s\left(\phi\right)s\left(\psi\right)
+				& c\left(\phi\right)s\left(\theta\right)s\left(\psi\right)-s\left(\phi\right)c\left(\psi\right)
+					& c\left(\phi\right)c\left(\theta\right)
+		\end{bmatrix}
+\end{align*}
+
+Dado que la gravedad solo tiene componente vertical, de la matriz de rotación interesa solo la última columna, que con la secuencia de rotaciones adoptada no depende del rumbo $\psi$:
+\begin{equation*}
+	\vect{F}_g 
+	= \mtx{C}_n^b \begin{Bmatrix} 0 \\ 0 \\ m g \end{Bmatrix} 
+	= \begin{Bmatrix} -\sin{\theta} \\ \cos{\theta}\sin{\phi} \\ \cos{\theta}\cos{\phi} \end{Bmatrix} mg
+\end{equation*}
+%\begin{align*}
+%	X_g &= -mg\sin{\theta} \\
+%	Y_g &=  mg\cos{\theta}\sin{\phi} \\
+%	Z_g &=  mg\cos{\theta}\cos{\phi}
+%\end{align*}
+A partir de esto es necesario incluir en el modelo la cinemática de los ángulos de Euler; que podemos expresar como la relación entre las variaciones de estos ángulos con las velocidades angulares proyectadas en terna móvil mediante las siguientes ecuaciones:
+\begin{equation*}
+	\begin{Bmatrix} \dot{\phi} \\ \dot{\theta} \\ \dot{\psi} \end{Bmatrix}
+	= \begin{bmatrix}
+		1 	& \sin\left(\phi\right)\tan\left(\theta\right) &  \cos\left(\phi\right)\tan \left(\theta\right) \\
+		0	& \cos\left(\phi\right)                        & -\sin\left(\phi\right) \\
+		0	& \sin\left(\phi\right)\sec\left(\theta\right) &  \cos\left(\phi\right)\sec \left(\theta\right)
+	\end{bmatrix}
+	\cdot \begin{Bmatrix} p \\ q \\ r \end{Bmatrix}
+	= C_\omega^{\dot{e}}\vect{\omega}
+\end{equation*}
+es decir:
+\begin{align*}
+	\dot{\phi}	 &= p + \sin\left(\phi\right)\tan\left(\theta\right) q + \cos\left(\phi\right)tan\left(\theta\right)r \\
+	\dot{\theta} &=     \cos\left(\phi\right)q - \sin\left(\phi\right)r
+\end{align*}
+
+\subsubsection{Modelo resultante}
+En notación vectorial el modelo de cuerpo rígido para una aeronave es de la forma:
+\begin{align}
+	\label{ecu:aircraft-1-mcte}
+	\dot{\vect{v}} &= -\vect{\omega} \times \vect{v} + \vect{f}_a(\alpha, \beta, \mathcal{M}) + \vect{f}_p + \vect{g}^b(\vect{\theta}) 
+	\\
+	\label{ecu:aircraft-2-mcte}
+	\dot{\vect{\omega}}	&= -\mtx{J}^{-1} \vect{\omega}\times \left(\mtx{J}\vect{\omega} + \vect{\bar{h}}\right) + \vect{\tau}_a(\alpha, \beta, \mathcal{M}) + \vect{\tau}_p 
+	\\
+	\label{ecu:aircraft-3-mcte}
+	\dot{\vect{\theta}} &= C_\omega^{\dot{e}}\vect{\omega}
+\end{align}
+donde $\vect{g}^b$ es la proyección del vector de aceleración gravitatoria en la terna móvil (que depende de la actitud $\vect{\theta}$), $\vect{f}_a$ y $\vect{\tau}_a$ son las aceleraciones por efectos aerodinámicos, %$\vect{\delta}$ es el vector de deflexiones de las superficies de control,  
+$\vect{f}_p$ y $\vect{\tau}_p$ son las aceleraciones asociadas a la propulsión.
+
+\subsection{Simplificaciones}
+
+\paragraph{Expansión de los términos de acoplamiento inercial}
+
+Si queremos expandir estas ecuaciones podemos tener en cuenta que el producto vectorial puede resolverse mediante un producto matricial, construyendo una matriz \textit{antisimétrica} con el lazo izquierdo:
+\begin{equation*}
+	\vect{a} \times \vect{b}
+	=
+	\begin{bmatrix} 0 & -a_3 & a_2 \\ a_3 & 0 & -a_1 \\ -a_2 & a_1 & 0 \end{bmatrix} 
+	\begin{Bmatrix} b_1 \\ b_2 \\ b_3 \end{Bmatrix} 
+	= \vect{a} \times \vect{b} = \mtx{S}(\vect{a}) \vect{b}
+	= -\mtx{S}(\vect{b})\vect{a}
+\end{equation*}
+donde $\mtx{S}(\vect{a})$ representa la matriz anti-simétrica construida con el vector $\vect{a}$. 
+
+Con esto es fácil demostrar que:
+\begin{equation*}
+	\vect{\omega} \times \vect{v} = \begin{Bmatrix} qw - rv \\ ru - pw \\ pv - qu \end{Bmatrix} 
+	\qquad ,\qquad
+	\vect{\omega} \times \vect{\bar{h}}=\left\{\ \begin{matrix}q\bar{h}_z-r\bar{h}_y\\r\bar{h}_x-p\bar{h}_z\\p\bar{h}_y-q\bar{h}_x\\\end{matrix}\ \right\}
+\end{equation*}
+Para un caso general: %Y si el vehículo es simétrico respecto del plano $xz$, los términos $xy$ y $zy$ en el tensor de inercia son nulos, con lo que:
+\begin{equation*}
+	\mtx{J} = \begin{bmatrix} I_x & I_{xy} & I_{xz} \\ I_{xy} & I_y & I_{yz} \\ I_{xz} & I_{yz} & I_{zz} \end{bmatrix} 
+	\qquad \rightarrow \qquad 
+	\mtx{J}\vect{\omega} = 
+	\begin{Bmatrix} I_{xx} p \\ I_{yy} q \\ I_{zz} r \end{Bmatrix} 	+
+	I_{xy} \begin{Bmatrix} q \\ p \\ 0 \end{Bmatrix} + 
+	I_{xz} \begin{Bmatrix} r \\ 0 \\ p \end{Bmatrix} + 
+	I_{yz} \begin{Bmatrix} 0 \\ r \\ q \end{Bmatrix}  
+\end{equation*}
+Combinando estas expresiones:
+\begin{align*}
+	\vect{\omega} \times \left(\mtx{J} \vect{\omega} + \vect{\bar{h}}\right) 
+	&= \begin{Bmatrix} \Delta_{zy} q r \\ \Delta_{xz} p r \\ \Delta_{yx} p q  \end{Bmatrix}
+	+ I_{xy} \begin{Bmatrix} -p r \\ \phantom{-} q r \\ p^2 - q^2 \end{Bmatrix}
+	+ I_{xz} \begin{Bmatrix} \phantom{-} p q \\ r^2-p^2 \\ -q r \end{Bmatrix}
+	+ I_{yz} \begin{Bmatrix} q^2-r^2 \\ -p q \\ \phantom{-} p r \end{Bmatrix}
+ \\&+ \begin{Bmatrix} \bar{h}_z q - \bar{h}_y r \\ \bar{h}_x r - \bar{h}_z p \\ \bar{h}_y p - \bar{h}_x q \end{Bmatrix}
+    \qquad , \qquad \Delta_{uv} = I_{uu} - I_{vv} 
+\end{align*}
+
+En el caso ideal para un lanzador espacial (cuerpo rígido simétrico respecto de los planos $xy$ y $xz$, sin masas rotantes) se tendría $\bar{\vect{h}} = 0, \Delta_{zy} = 0, I_{xy} = I_{xz} = I_{yz} = 0$.
+Definiendo $I = I_{xx}$, $\bar{I} = I_{yy} = I_{zz}$, $I_\Delta = \left(I - \bar{I}\right)/\bar{I}$:
+\begin{align}
+	\begin{Bmatrix} \dot{p} \phantom{+ I_\Delta pr} \\ \dot{q} + I_\Delta pr \\ \dot{r} - I_\Delta pq \end{Bmatrix} 
+	&= \begin{Bmatrix} L/I \\ M/\bar{I} \\ N/\bar{I} \end{Bmatrix} 
+	 = \begin{Bmatrix} \tau_x \\ \tau_y \\ \tau_z \end{Bmatrix}
+	\label{ecu:rocket-rigid-body-moment-equations}
+	\\
+	   \begin{Bmatrix} \dot{u} + qw - rv \\ \dot{v} + ru - pw \\ \dot{w} + pv - qu \end{Bmatrix}
+	&= \begin{Bmatrix} X/m \\ Y/m \\ Z/m \end{Bmatrix} 
+	 = \begin{Bmatrix} f_x \\ f_y \\ f_z \end{Bmatrix} 	
+	\label{ecu:rocket-rigid-body-focre-equations}
+\end{align}
+%Hasta este punto el vehículo puede ser de cualquier naturaleza, en tanto la modelización como cuerpo rígido sea válida según lo explicitado al inicio de esta sección.
+%Al modelar las fuerzas y momentos llevaremos este modelo al caso particular de una aeronave, vehículos espaciales \cite{tewari_dyn}, aplicaciones navales (navíos, submarinos y  plataformas off-shore) \cite{fossen}, etc. 
+
+\subsubsection{Modelo lineal}
+
+Las expresiones \eqref{ecu:aircraft-1-mcte}, \eqref{ecu:aircraft-2-mcte} y \eqref{ecu:aircraft-3-mcte} son no lineales por los acoplamientos de inercia, la proyección de la componente gravitatoria y por el modelo aerodinámico.
+
+A continuación proponemos una linealización para el entorno de una condición de equilibrio.
+
+\paragraph{Equilibrio}
+
+La condición nominal en vuelo atmosférico es la del giro gravitatorio, en la cual los ángulos de incidencia son nulos, $\alpha = \beta = 0$, de forma tal que la aceleración radial para la trayectoria nominal es la atracción gravitatoria en el punto considerado.
+
+Por lo tanto, a la atracción gravitatoria es necesario substraerle una componente por aceleración centrífuga dada por:
+\begin{equation}
+	a_c = \frac{u^2}{R + h}
+\end{equation}
+donde $R$ es el radio terrestre y $h$ la altura de vuelo.
+
+\paragraph{Linealización}\label{ssec:rocket_ss}
+
+Como surge de \eqref{ecu:aircraft-1-mcte}, \eqref{ecu:aircraft-1-mcte} y \eqref{ecu:aircraft-1-mcte}, debido a los términos inerciales el vector de estados debe incluir las componentes de las velocidades lineal y angular.
+A esto es necesario agregar la actitud (al menos los ángulos de cabeceo y rolido usando la definición de Tait-Brian) introducidos por la componente gravitatoria. 
+El modelo aerodinámico cuasi-estacionario no requiere la inclusión de nuevos estados.
+
+El vector de estado sería:
+\begin{equation}
+	\vect{x} = \begin{Bmatrix} \vect{v} \\ \vect{\omega} \\ \vect{\theta} \end{Bmatrix}
+\end{equation}
+Vamos a considerar como entradas los comandos del TVC: $\delta_y$ y $\delta_z$:
+\begin{equation}
+	\vect{\delta} = \begin{Bmatrix} \delta_y \\ \delta_z \end{Bmatrix}
+\end{equation}
+
+Para ángulos de incidencia pequeños:
+\begin{equation}\label{ecu:alfa_beta_aprox}
+	\Delta \alpha \approx \frac{1}{V_0} \Delta w
+	\quad , \quad 
+	\Delta \beta \approx \frac{1}{V_0} \Delta v
+\end{equation}
+donde llamamos $V_0$ a la velocidad de vuelo en la condición de equilibrio.
+Así, por ejemplo:
+\begin{align*} 
+	Z &= \sigma \bar{S}\ c_z \frac{\Delta w}{V_0}
+	\\ 
+	M &= \sigma  \bar{S}\,\bar{l} \ \left[c_{m_\alpha} \frac{\Delta w}{V_0} +
+	\frac{\bar{l}}{2 V_0} \left(c_{m_{\dot{\alpha}}}\ \frac{\dot{w}}{V_0} + c_{m_q}\ q \right)\right]
+\end{align*} 
+
+
+
+
+%Por lo tanto, las derivativas del ángulo de ataque respecto del CG serán:
+%\begin{equation*} \todo{COMENTARIOS}
+%	c^{cg}_\alpha = c^r_\alpha + c^r_q \frac{\bar{l}}{2} \cdot d_{cg}
+%\end{equation*}
+
+\bigskip
+
+Linealizando \eqref{ecu:rocket-rigid-body-moment-equations} y \eqref{ecu:rocket-rigid-body-focre-equations} 
+despreciando el momento cinético de las masas rotantes y ángulos de incidencia nulos ($\bar{\vect{v}} = \{V_0 , 0 , 0\} $),
+con $\bar{\vect{\omega}} = \{ p_0 , 0 , 0 \}$:
+\begin{align}
+	\begin{Bmatrix} \dot{p} \\ \dot{q} \\ \dot{r} \end{Bmatrix} 
+	&= 
+	  \sigma\,\bar{S}\,\bar{l}\, \mtx{J}^{-1} \left[\frac{c_m}{V_0}\,\begin{Bmatrix} 0 \\ w \\ v \end{Bmatrix} 
+	+ c_{m_q}\ \frac{\bar{l}}{2V_0} \begin{Bmatrix} 0 \\ q \\ r \end{Bmatrix}
+	+ c_{m_{\dot{\alpha}}}\ \frac{\bar{l}}{2V_0} \begin{Bmatrix} 0 \\ \dot{w} \\ \dot{v} \end{Bmatrix}
+	\right] 
+	\nonumber \\&
+	+ I_\Delta p_0 \begin{Bmatrix} \phantom{-} 0 \\ \phantom{-} r \\ - q \end{Bmatrix}
+	+ \tau_T \begin{Bmatrix} 0 \\ \delta_z \\ \delta_y \end{Bmatrix}  
+	\label{ecu:rocket-rigid-body-moment-equations-lin}
+	\\
+	   \begin{Bmatrix} \dot{u} \\ \dot{v} \\ \dot{w} \end{Bmatrix}
+	&= 
+	  \sigma\,\bar{S}\,\frac{1}{m} \left[c_n\,\begin{Bmatrix} 0 \\ v \\ w \end{Bmatrix} 
+	+ c_{f_{\dot{\alpha}}}\ \frac{\bar{l}}{2V_0} \begin{Bmatrix} 0 \\ \dot{v} \\ \dot{w} \end{Bmatrix} 
+	\right] 
+	+ V_0\, \begin{Bmatrix}  \phantom{-}0 \\ -r \\ \phantom{-}q \end{Bmatrix}	
+	+ p_0\, \begin{Bmatrix}  \phantom{-}0 \\ \phantom{-}w \\ -v \end{Bmatrix}	
+		\nonumber \\&
+	+ g \begin{Bmatrix} -s_\theta\  \theta \\ c_\theta \phi \\ c_\theta \theta \end{Bmatrix}
+	+ f_T\, \begin{Bmatrix} - \dfrac{V_0}{g_0  I_{sp}} \\[8pt] \delta_y \\ \delta_z \end{Bmatrix} 
+	\label{ecu:rocket-rigid-body-focre-equations-lin}
+\end{align}
+donde $s_\theta = \sin \theta_0$, $c_\theta = \cos \theta_0$, $f_T = T/m$ y $\tau_T = d_{t}\, T\,\mtx{J}^{-1}$, mientras que:
+
+\begin{equation*}
+	C_F = \frac{\rho V_0}{2}\,\bar{S}
+	\ \quad , \qquad  
+	C_M = \frac{\rho V_0}{2}\,\bar{S}\, \bar{l}
+\end{equation*}
+
+Si $p_0 = 0$ surge una dinámica longitudinal y otra latero-direccional.
+Para la primera:
+\begin{equation*}
+	\begin{bmatrix}
+		m - z_{\dot{w}} & 0 & 0 \\ 
+		-m_{\dot{w}} & I_y & 0 \\ 
+		0 & 0 & 1  
+	\end{bmatrix}  
+	\begin{Bmatrix} \dot{w} \\ \dot{q} \\ \dot{\theta} \end{Bmatrix} 
+	= 
+	\begin{bmatrix}
+		z_w & z_q+mV_0 & z_\theta \\ 
+		m_w & m_q & 0 \\ 
+		0 & 1 & 0  
+	\end{bmatrix}  
+	\begin{Bmatrix} w \\ q \\ \theta \end{Bmatrix} 
+	+ 
+	T\,  
+	\begin{bmatrix} 1 \\ d_{t} \\ 0 \end{bmatrix}  
+	\delta_y   
+\end{equation*}
+donde
+\begin{align*}
+	z_w &= C_F\, c_f 
+	\quad \qquad , \qquad  \
+	z_q = C_F\, \frac{\bar{l}}{2}\, c_{N_q} 
+	\qquad , \qquad	
+	z_\theta = -m g \sin \theta_0	
+	\\
+	m_w &= C_M\, c_m  
+	\ \ \qquad , \qquad  
+	m_q  = C_M\, \frac{\bar{l}}{2}\,c_q  
+	\\
+	z_{\dot{w}} &= C_F\, \frac{\bar{l}}{2V_0}\, c_{z_{\dot{\alpha}}}  
+	\ \ , \qquad  
+	m_{\dot{w}}  = C_M \frac{\bar{l}}{2V_0}\,c_{m_{\dot{\alpha}}}  
+\end{align*}
+
+\end{document}
