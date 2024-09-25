@@ -6,7 +6,7 @@
 /// \brief
 /// \author   Augusto Zumarraga
 /// \date     creación: 10/06/2024
-/// \date     revisión: 04/09/2024
+/// \date     revisión: 25/09/2024
 //______________________________________________________________________________
 
 /*
@@ -111,6 +111,7 @@ void fsim::on_state(int st, const sim_info_t& p, logger_t& log)
 	switch(st)
 	{
 	case fcc_t::st_init        : log << "init        "; break;
+	case fcc_t::st_armed       : log << "armed       "; break;
 	case fcc_t::st_ascent      : log << "ascent      "; break;
 	case fcc_t::st_load_relief : log << "load_relief "; break;
 	case fcc_t::st_meco        : log << "MECO        "; break;

@@ -31,7 +31,7 @@
     IN THE SOFTWARE.
 */
 #include <dgnc/utest.hpp>
-#include "../fcc/pguid.hpp"
+#include "../fcc/pguid/pguid.hpp"
 
 using namespace dgnc;
 
@@ -43,7 +43,7 @@ using geom::direction;
 namespace {
 
 // clase para acceder a elementos protegidos de ltg_t
-class ltg_dbg_t : public gnc::pguid_t::ltg_t
+class ltg_dbg_t : public gnc::guid::ltg_t
 {
 public:
 
@@ -52,14 +52,14 @@ public:
 			  , vector rgrav_I
 			  , vector vgo_I
 			  , vector uZ_I
-	          , scalar tgo)
+	          , scalar ttgo)
 	{
 		m_state.rbias_I = rbias_I;
 		m_state.sDI_I   = sDI_I  ;
 		m_state.rgrav_I = rgrav_I;
 		m_state.vgo_I   = vgo_I  ;
 		m_state.uZ_I    = uZ_I   ;
-		m_state.tgo     = tgo    ;
+		m_state.ttgo    = ttgo   ;
 
 //		direction u_I        ;
 //		direction ulambda_I  ;
@@ -67,18 +67,24 @@ public:
 //		second_t  t0         ;
 //		scalar    Vmiss      ;
 	}
-	void init(const gnc::peg_nav_t& nv)
+	void init(const gnc::guid::nav_t& nv)
 	{
-		gnc::pguid_t::ltg_t::init(nv);
+		gnc::guid::ltg_t::init(nv);
 	}
-	void update(const gnc::peg_nav_t& nv)
+	void update(const gnc::guid::nav_t& nv)
 	{
-		gnc::pguid_t::ltg_t::update(nv);
+		gnc::guid::ltg_t::update(nv);
 	}
 };
 
+
 }
 
+std::ostream& operator<<(std::ostream& s, const gnc::guid::out_t& out)
+{
+	s << static_cast<const dgnc::geom::vector&>(out.dir) << ", " << out.rate;
+	return s;
+}
 
 
 bool pguid_test()
@@ -86,7 +92,7 @@ bool pguid_test()
 	test_handler_t tst = "init";
 
 	ltg_dbg_t ltg;
-	gnc::peg_nav_t nav;
+	gnc::guid::nav_t nav;
 	vector u_I;
 
 	ltg.params.Tg         = 0.05;

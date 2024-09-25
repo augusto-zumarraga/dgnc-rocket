@@ -6,7 +6,7 @@
 /// \brief
 /// \author   Augusto Zumarraga
 /// \date     creación: 27/06/2024
-/// \date     revisión: 05/09/2024
+/// \date     revisión: 25/09/2024
 //______________________________________________________________________________
 
 /*
@@ -72,6 +72,7 @@ fcc_t& fcc_t::reset(const ins_data_t& s, e_states st, second_t t_launch, second_
 	switch(st)
 	{
 	case st_init         : set_state(state_init        , s); break;
+	case st_armed        : set_state(state_armed       , s); break;
 	case st_ascent       : set_state(state_ascent      , s); break;
 	case st_load_relief  : set_state(state_load_relief , s); break;
 	case st_meco         : set_state(state_meco        , s); break;
@@ -88,6 +89,7 @@ fcc_t& fcc_t::reset(const ins_data_t& s, e_states st, second_t t_launch, second_
 }
 // vuelo atmosférico (1ra etapa)
 fcc_t::state_t fcc_t::state_init        (st_init        , &fcc_t::        init_on_timer);
+fcc_t::state_t fcc_t::state_armed       (st_armed       , &fcc_t::       armed_on_timer, &fcc_t:: armed_on_entry);
 fcc_t::state_t fcc_t::state_ascent      (st_ascent      , &fcc_t::      ascent_on_timer, &fcc_t::ascent_on_entry);
 fcc_t::state_t fcc_t::state_load_relief (st_load_relief , &fcc_t:: load_relief_on_timer);
 fcc_t::state_t fcc_t::state_meco        (st_meco        , &fcc_t::        meco_on_timer, &fcc_t::meco_on_entry, &fcc_t::meco_on_exit);
@@ -109,10 +111,21 @@ void fcc_t::init_on_timer(const ins_data_t& s)
 }
 
 //------------------------------------------------------------------------------
+void fcc_t::armed_on_entry(const ins_data_t& s)
+{
+	m_alarm.set(s.elapsed + second_t(10));
+}
+void fcc_t::armed_on_timer(const ins_data_t& s)
+{
+	m_cmnd.eng = m_alarm(s.elapsed);
+	if(m_plan.s1_fired(s.sfc.x()))
+		set_state(state_ascent, s);
+}
+
+//------------------------------------------------------------------------------
 void fcc_t::ascent_on_entry(const ins_data_t& s)
 {
 	m_tlmy.reset();
-	m_cmnd.eng = true;
 	m_cntrl_s1.start(s.elapsed);
 	m_plan.start(s.elapsed);
 }

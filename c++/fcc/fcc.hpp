@@ -8,7 +8,7 @@
 /// \date     creación: 27/06/2024
 /// \date     revisión: 17/07/2024
 /// \date     revisión: 14/08/2024 PGUID
-/// \date     revisión: 14/09/2024
+/// \date     revisión: 25/09/2024
 //______________________________________________________________________________
 
 /*
@@ -52,6 +52,7 @@ public:
 	enum e_states
 	// primera etapa
 	{ st_init = 0
+    , st_armed
 	, st_ascent
 	, st_load_relief
 	, st_meco
@@ -91,10 +92,10 @@ public:
 		on_event(ins);
 		return *this;
 	}
-	fcc_t& launch(const ins_data_t& ins)
+	fcc_t& arm(const ins_data_t& ins)
 	{
 		if(current_state_id() == st_init)
-			set_state(state_ascent, ins);
+			set_state(state_armed, ins);
 		return *this;
 	}
 	fcc_t& reset(const ins_data_t&, e_states st, second_t t_launch, second_t t_sep);
@@ -122,6 +123,10 @@ public:
     flight_t& plan  () const { return m_plan; }
     flight_t& plan  ()       { return m_plan; }
 	bool exo_phase  () const { return current_state_id() > st_meco; }
+	second_t time_to_launch(second_t t) const
+	{
+		return current_state_id() == st_armed ? m_alarm.remaining(t) : second_t(0);
+	}
 
 private:
 
@@ -141,6 +146,7 @@ private:
 	friend  fsm_t;
 
 	static state_t state_init;
+	static state_t state_armed;
 	static state_t state_ascent;
 	static state_t state_load_relief;
 	static state_t state_meco;
@@ -154,6 +160,8 @@ private:
 	static state_t state_orbit;
 
 	void         init_on_timer(const ins_data_t&);
+	void        armed_on_entry(const ins_data_t&);
+	void        armed_on_timer(const ins_data_t&);
 	void       ascent_on_entry(const ins_data_t&);
 	void       ascent_on_timer(const ins_data_t&);
 	void  load_relief_on_timer(const ins_data_t&);

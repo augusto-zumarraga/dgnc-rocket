@@ -95,6 +95,10 @@ public:
     {
     	return expired(tm);
     }
+    second_t remaining(second_t tm) const
+    {
+    	return m_tm - tm;
+    }
 
 protected:
 

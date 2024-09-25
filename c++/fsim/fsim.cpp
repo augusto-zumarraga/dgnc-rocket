@@ -6,7 +6,7 @@
 /// \brief
 /// \author   Augusto Zumarraga
 /// \date     creación: 10/06/2024
-/// \date     revisión: 18/09/2024
+/// \date     revisión: 25/09/2024
 //______________________________________________________________________________
 
 /*
@@ -120,18 +120,12 @@ bool dgnc::fsim::exec_t::operator()(bool do_plot)
 
 	int st = fcc.state_trace();
 	unsigned mark = 0;
+	bool     eng  = false, rel = false;
 	//________________________________________________________________ SIM Loop
 
 	for(unsigned k=0; k<N; ++k)
 	{
 		double t = k * ts + toff;
-		if(!(k%Nk))
-		{
-			std::cerr << '.' ;
-			if(!(k%(10*Nk)))
-				std::cerr << '\n' << t << ' ';
-		}
-
 		xo.elapsed = t; // para mitigar errores numéricos
 		p_stage->sample_begin(t, xo, ts);
 
@@ -145,7 +139,7 @@ bool dgnc::fsim::exec_t::operator()(bool do_plot)
 
 		update(sim_rec.back(), fcc_sns); // simular las mediciones
 		if(t >= tlaunch)
-			fcc.launch(fcc_sns);
+			fcc.arm(fcc_sns);
 		fcc.on_time(fcc_sns);            // ejecutar el control de vuelo
 		fcc.update_tlmy();               // actualizar la telemetría
 		fcc_rec.push_back(fcc.tlmy());
@@ -162,7 +156,16 @@ bool dgnc::fsim::exec_t::operator()(bool do_plot)
 		p_stage->acts().rcs(fcc.AOs().rc );
 		p_stage->acts().eng(fcc.DOs().eng);
 
-		// --------------------------------------------------- EVENTS HANDLING
+		// -------------------------------------------------    EVENTS HANDLING
+		if(eng != fcc.DOs().eng)
+		{
+			eng = fcc.DOs().eng;
+			if(eng)
+				log << '\n' << t << " : IGNITION" << '\n';
+			else
+				log << '\n' << t << " : CUT OFF" << '\n';
+		}
+		// ------------------------------------------------- EVENTS HANDLING S1
 		if(p_stage == &S2)
 		{
 			if(fcc.DOs().sep && fcc.plan().separation_completed(t))
@@ -171,22 +174,42 @@ bool dgnc::fsim::exec_t::operator()(bool do_plot)
 				xo.wbi += sep_rot;
 				log << '\n' << t << " : SEPARATION COMPLETED" << '\n';
 			}
-			if(fcc.DOs().rel)
+			if(!rel && fcc.DOs().rel)
 			{
-				fcc.on_release();
+				rel = true;
 				double me = p_stage->mass().extra.eject();
 				xo.mass -= me;
-				log << '\n'  << t << " : MASS RELEASE (" << me
-					<< "kg)" << '\n';
+				log << '\n'  << t << " : MASS RELEASE (" << me << "kg)" << '\n';
+				fcc.on_release();
 			}
 		}
 		else
+		// ------------------------------------------------- EVENTS HANDLING S2
 		if(fcc.DOs().sep)
 		{
 			mark = k;
 			p_stage = &S2;
 			S2.init(xo);
 			log << '\n' << t << " : SEPARATION START" << '\n';
+		}
+
+		//-------------------------------------------------------- TIME DISPLAY
+		if(fcc.state_trace() == fcc_t::st_armed)
+		{
+			static int sec_last = 0;
+			int sec_now = fcc.time_to_launch(t).value;
+			if(sec_last != sec_now)
+			{
+				sec_last = sec_now;
+				std::cerr << sec_now << " | ";
+			}
+		}
+		else
+		if(!(k%Nk))
+		{
+			std::cerr << '.' ;
+			if(!(k%(10*Nk)))
+				std::cerr << '\n' << t << ' ';
 		}
 
 		// --------------------------------------------------------- TIME STEP

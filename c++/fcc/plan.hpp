@@ -90,6 +90,7 @@ protected:
 	second_t     meco_advance()              const { return times.meco_advance; }
 	bool  start_meco_maneuver(second_t elps) const { return (elps - wire.time_offset()) >= times.s1_burn - times.meco_advance; }
 	void     start_separation(second_t elps)       { m_tm_sep = elps; }
+	bool             s1_fired(double fx)     const { return fx  > wgs84::go * 1.1; }
 	bool             s2_fired(double fx)     const { return fx  > params.f_min; }
 	bool        do_separation(float hgt)     const { return hgt > params.hgt_sep; }
 	bool          do_steering(float hgt)     const { return hgt > params.hgt_strn; }
