@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1.0">
+  <help_text>Space for diagram notes</help_text>
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>60</x>
+      <y>170</y>
+      <w>250</w>
+      <h>360</h>
+    </coordinates>
+    <panel_attributes>fcc_t
+--
+bool_t::cmnd
+tlmy_t::tlmy
+
+state_init
+state_armed
+state_ascent
+state_load_relief
+state_meco
+state_separation
+state_fire_s2
+state_gravity_turn
+state_steering
+state_low_thrust
+state_coasting
+state_engine_off
+state_orbit
+--
+arm(ins_data_t)
+on_time(ins_data_t)
+update_tlmy()
+time_to_launch(second_t):second_t
+ 
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>420</x>
+      <y>60</y>
+      <w>270</w>
+      <h>210</h>
+    </coordinates>
+    <panel_attributes>c_atm_t
+--
+tvc_yz_t
+roll_fin_t
+gains
+--
+start    (elps:second_t)
+reset    ()
+roll_loop(:ins_data_t)
+pqr_loop (:ins_data_t)
+att_loop (r:quat,q:quat,:ins_data_t)
+--
+
+modos de control en fase 
+atmosférica</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>420</x>
+      <y>280</y>
+      <w>270</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>c_exo_t
+--
+tvc_yz_t
+roll_rcs_t
+gains
+--
+start    (elps:second_t)
+reset    ()
+roll_loop(:ins_data_t)
+pointing_loop(rx:vector,:ins_data_t)
+--
+
+modos de control en fase 
+exo-atmosférica</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>300</x>
+      <y>190</y>
+      <w>140</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=1
+</panel_attributes>
+    <additional_attributes>10.0;20.0;120.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>300</x>
+      <y>290</y>
+      <w>140</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=1
+</panel_attributes>
+    <additional_attributes>10.0;20.0;120.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>770</x>
+      <y>260</y>
+      <w>200</w>
+      <h>360</h>
+    </coordinates>
+    <panel_attributes>pguid_t
+--
+out:out_t 
+alarm:alarm_t      
+ltg:ltg_t
+trm:term_t
+
+state_init       
+state_pre_thrust 
+state_pre_cycling
+state_ltg        
+state_terminal   
+state_orbit      
+--
+setup  (params_t)
+fill   (tlmy_t)
+out    () : out_t
+seco   () :bool
+state  () : e_states
+suspend(Fs:scalar) : bool
+resume (Fs:scalar) : bool
+on_time(:nav_t)
+--
+
+guiado activo en fase 
+exo-atmosférica</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>60</x>
+      <y>70</y>
+      <w>230</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>template=0:fcc_t
+t_finite_state_machine
+--</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>150</x>
+      <y>130</y>
+      <w>30</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>300</x>
+      <y>480</y>
+      <w>490</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=1
+</panel_attributes>
+    <additional_attributes>10.0;20.0;470.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>770</x>
+      <y>150</y>
+      <w>230</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>template=0:pguid_t
+t_finite_state_machine
+--</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>850</x>
+      <y>210</y>
+      <w>30</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+</diagram>

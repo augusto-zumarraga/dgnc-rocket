@@ -43,11 +43,11 @@ inertia_t& inertia_t::load(const char* fname)
 {
 	return *this;
 }
+// tbl = [m cg:{x y z} I:{x y z}];
 inertia_t& inertia_t::import(const char* csv_name)
 {
 	csv::table_t csv = csv::read(csv_name, ' ');
  	assert(csv.size() == 7);
- 	//int idx[] = {1,2,3,4,5,6};
  	data.setup(csv[0], csv, 1);
  	m_prop = data.range().back() - data.range().front() - extra.m;
 	return *this;
@@ -67,7 +67,7 @@ mass_prop_t inertia_t::operator()(scalar m) const
 		x[5] += extra.Iy + extra.m * d2;
 	}
 	r.m  = m;
-	r.cg = vector(x[0], 0, 0);
+	r.cg = vector(x[0], x[1], x[2]);
 	r.J  = 0;         r.Ji = 0; // J.inv();
 	r.J (0,0) = x[3]; r.Ji(0,0) = 1.0f/x[3];
 	r.J (1,1) = x[4]; r.Ji(1,1) = 1.0f/x[4];

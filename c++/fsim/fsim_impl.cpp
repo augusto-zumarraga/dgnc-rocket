@@ -31,6 +31,7 @@
     IN THE SOFTWARE.
 */
 
+#include "fsim.hpp"
 #include "fsim_impl.hpp"
 
 using namespace dgnc;
@@ -53,7 +54,7 @@ fsim::logger_t& fsim::logger_t::operator<<(char s)
 }
 
 //------------------------------------------------------------------------------
-void fsim::update(const dgnc::fsim::sim_info_t& sim, gnc::ins_data_t& ins)
+void fsim::exec_t::update(const dgnc::fsim::sim_info_t& sim, gnc::ins_data_t& ins)
 {
 	ins.nav() = sim.ins;
 	ins.lla = sim.env.lla;
@@ -68,16 +69,15 @@ void fsim::update(const dgnc::fsim::sim_info_t& sim, gnc::ins_data_t& ins)
 }
 
 //------------------------------------------------------------------------------
-bool fsim::fts(const sim_info_t& s, logger_t& log)
+bool fsim::exec_t::fts(const sim_info_t& s, logger_t& log)
 {
 	constexpr auto f_max = 10*9.81;
-	constexpr auto w_max = 1;
-/*	if(s.env.lla.alt < 1)
+	if(s.env.lla.alt < 1)
 	{
 		log << s.ins.elapsed << " : GROUND HIT!!" << '\n' ;
 		return false;
-	}*/
-	if(s.env.mdot > 1e-2)
+	}
+	if(w_max && s.env.mdot > 1e-2)
 	{
 		if(std::abs(s.env.wbi.x()) > w_max)
 		{
@@ -104,7 +104,7 @@ bool fsim::fts(const sim_info_t& s, logger_t& log)
 }
 
 //------------------------------------------------------------------------------
-void fsim::on_state(int st, const sim_info_t& p, logger_t& log)
+void fsim::exec_t::on_state(int st, const sim_info_t& p, logger_t& log)
 {
 	log << "\n\n============================================================\n"
 			  << p.ins.elapsed << "s: STATE ";
@@ -141,7 +141,6 @@ void fsim::on_state(int st, const sim_info_t& p, logger_t& log)
 		using dgnc::geom::polar;
 
 		eci::state_t si = p.ins;
-//		orbit_t orbit = m_plan.orbit();
 		polar lt = orbit(eci::lla_t(si.pos)) << si.vel;
 
 		ned::att_t qned = ecef_to_ned(p.env.lla, p.ins.att);
@@ -168,7 +167,7 @@ void fsim::on_state(int st, const sim_info_t& p, logger_t& log)
 	    << '\n';
 }
 
-void fsim::dump(const std::string& exp, const solver_t::result_t& r)
+void fsim::exec_t::dump(const std::string& exp, const solver_t::result_t& r)
 {
 	std::ofstream s(exp);
 	for(unsigned k = 0, N = r.num_samples(); k < N; ++k)

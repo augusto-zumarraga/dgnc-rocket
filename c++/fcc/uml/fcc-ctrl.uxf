@@ -1,0 +1,97 @@
+<diagram program="umletino" version="15.1"><zoom_level>10</zoom_level><help_text>Space for diagram notes</help_text><element><id>UMLClass</id><coordinates><x>50</x><y>270</y><w>220</w><h>150</h></coordinates><panel_attributes>c_atm_t
+--
+--
+start(elps:second_t)
+reset()
+roll_loop(:ins_data_t)
+pqr_loop(:ins_data_t)
+att_loop(r:quat,q:quat, :ins_data_t)
+--
+modos de control en fase 
+atmosférica</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>660</x><y>110</y><w>180</w><h>190</h></coordinates><panel_attributes>tvc_yz_t
+--
+ts:double
+dy:double
+dz:double
+--
+setup(ts,params,gains)
+reset()
+cloop(ins_data_t, q_ref, r_ref)
+update(cont_t&amp;)
+set_null()
+--
+*control de velocidad angular
+ q y r utilizando el TVC</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>870</x><y>20</y><w>130</w><h>130</h></coordinates><panel_attributes>axis_t
+--
+params
+--
+setup
+reset
+operator(r, y,k,h)
+--
+- control de velocidad 
+angular en un eje</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>730</x><y>60</y><w>160</w><h>70</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=2</panel_attributes><additional_attributes>10;50;10;10;140;10</additional_attributes></element><element><id>Relation</id><coordinates><x>260</x><y>390</y><w>420</w><h>50</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=1
+</panel_attributes><additional_attributes>10;20;400;20</additional_attributes></element><element><id>UMLClass</id><coordinates><x>500</x><y>20</y><w>160</w><h>70</h></coordinates><panel_attributes>template=double: 
+t_schedule
+--</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>570</x><y>80</y><w>110</w><h>320</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=1
+</panel_attributes><additional_attributes>90;300;10;300;10;10</additional_attributes></element><element><id>UMLClass</id><coordinates><x>340</x><y>190</y><w>180</w><h>170</h></coordinates><panel_attributes>roll_fin_t
+--
+ts:double
+da:double
+--
+setup(ts,params,gains)
+reset()
+cloop(ins_data_t, p_ref)
+update(cont_t&amp;)
+set_null()
+--
+*control de velocidad de
+ rolido utilizando aletas</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>330</x><y>520</y><w>180</w><h>170</h></coordinates><panel_attributes>rcs_t
+--
+ts:double
+da:double
+--
+setup(ts,params,gains)
+reset()
+cloop(ins_data_t, p_ref)
+update(cont_t&amp;)
+set_null()
+--
+*control de velocidad de
+ rolido utilizando RCS</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>660</x><y>360</y><w>180</w><h>150</h></coordinates><panel_attributes>ctrl_t
+--
+cmnd:cont_t
+--
+stop_rotation()
+ow_thrust()
+update(tlmy_t&amp;) 
+tvc():tvc_yz_t&amp; 
+--
+elementos comunes al 
+control en ambas fases</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>730</x><y>290</y><w>40</w><h>90</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=1
+</panel_attributes><additional_attributes>10;70;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>500</x><y>80</y><w>90</w><h>540</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=1
+</panel_attributes><additional_attributes>10;520;60;520;60;10</additional_attributes></element><element><id>Relation</id><coordinates><x>410</x><y>70</y><w>110</w><h>140</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=1
+</panel_attributes><additional_attributes>10;120;10;10;90;10</additional_attributes></element><element><id>Relation</id><coordinates><x>260</x><y>310</y><w>100</w><h>50</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=1
+</panel_attributes><additional_attributes>10;20;80;20</additional_attributes></element><element><id>UMLClass</id><coordinates><x>50</x><y>460</y><w>220</w><h>150</h></coordinates><panel_attributes>c_exo_t
+--
+--
+start(elps:second_t)
+reset()
+roll_loop(:ins_data_t)
+pointing_loop(rx:vector, :ins_data_t)
+--
+modos de control en fase 
+exo-atmosférica</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>260</x><y>450</y><w>420</w><h>50</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=1
+</panel_attributes><additional_attributes>10;20;400;20</additional_attributes></element><element><id>Relation</id><coordinates><x>260</x><y>530</y><w>90</w><h>50</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=1
+</panel_attributes><additional_attributes>10;20;70;20</additional_attributes></element><element><id>Relation</id><coordinates><x>590</x><y>80</y><w>90</w><h>180</h></coordinates><panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-&gt;
+m2=1
+</panel_attributes><additional_attributes>70;160;10;160;10;10</additional_attributes></element></diagram>

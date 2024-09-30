@@ -32,6 +32,7 @@
 */
 
 #include "fsim_def.hpp"
+#include "fsim.hpp"
 
 namespace dgnc { namespace fsim {
 
@@ -50,15 +51,30 @@ private:
 	std::ofstream m_out;
 };
 
+//------------------------------------------------------------------------------
+/// Ejecutor de la simulación
+class exec_t
+{
+public:
+
+	exec_t(std::string);
+	bool operator()(bool do_plot);
+
+protected:
+
+	bool fts     (const sim_info_t& s, logger_t&);
+	void on_state(int st, const sim_info_t& p, logger_t&);
+	void update  (const sim_info_t& sim, ins_data_t& ins);
+	void dump    (const std::string&, const solver_t::result_t& r);
+
+	double tsim, toff, tlaunch, tint, w_max;
+	std::string  mdl, pln, exp, wind;
+	navs::angle_rate_t sep_rot;
+};
 
 //------------------------------------------------------------------------------
 constexpr auto min_mass = 22.13;
 extern navs::orb::circular_t orbit;
-
-bool fts     (const sim_info_t& s, logger_t&);
-void update  (const sim_info_t& sim, ins_data_t& ins);
-void on_state(int st, const sim_info_t& p, logger_t&);
-void dump    (const std::string&, const solver_t::result_t& r);
 }}
 
 //------------------------------------------------------------------------------

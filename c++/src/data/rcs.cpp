@@ -48,7 +48,7 @@ rcs_t::result_t rcs_t::operator()(second_t tm, const fires_t& fs, vector cg) con
 	assert(fs.size() == axes.size());
 	result_t r;
 	fires_t::const_iterator j = fs.begin();
-	for(axes_t::const_iterator i = axes.begin(), e = axes.begin(); i < e; ++i, ++j)
+	for(axes_t::const_iterator i = axes.begin(), e = axes.end(); i < e; ++i, ++j)
 	{
 		if(*j)
 		{

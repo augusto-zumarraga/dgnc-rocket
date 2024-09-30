@@ -54,7 +54,9 @@ void flight_t::setup(pguid_t& p)
 fcc_t::fcc_t()
 : fsm_t(state_init)
 , m_release(true)
-{}
+{
+	m_tlmy.reset();
+}
 void fcc_t::update_tlmy()
 {
 	m_tlmy.state = current_state_id();
@@ -125,7 +127,6 @@ void fcc_t::armed_on_timer(const ins_data_t& s)
 //------------------------------------------------------------------------------
 void fcc_t::ascent_on_entry(const ins_data_t& s)
 {
-	m_tlmy.reset();
 	m_cntrl_s1.start(s.elapsed);
 	m_plan.start(s.elapsed);
 }

@@ -1,12 +1,12 @@
 /*============================================================================*/
 /*                                                                            */
 /*============================================================================*/
-
+#pragma once
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief
 /// \author   Augusto Zumarraga
 /// \date     creación: 17/09/2024
-/// \date     revisión: 18/09/2024
+/// \date     revisión: 26/09/2024
 //______________________________________________________________________________
 
 /*
@@ -30,28 +30,12 @@
     FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
     IN THE SOFTWARE.
 */
-#pragma once
+
 
 #include <string>
-#include <dgnc/navs/navs_def.hpp>
 
 namespace dgnc { namespace fsim {
-
-//------------------------------------------------------------------------------
-class exec_t
-{
-public:
-
-	exec_t(std::string);
-	bool operator()(bool do_plot);
-
-protected:
-
-	double tsim, toff, tlaunch, tint;
-	std::string  mdl, pln, exp, wind;
-	navs::angle_rate_t sep_rot;
-};
-
+bool run(const std::string& fpath, bool plot);
 }}
 
 

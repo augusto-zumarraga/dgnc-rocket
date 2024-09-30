@@ -30,11 +30,16 @@
     FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
     IN THE SOFTWARE.
 */
-#include "fsim.hpp"
 #include "fsim_impl.hpp"
 #include "plot/plot.hpp"
 #include <dgnc/store/ini_file.hpp>
 #include <dgnc/rocket/dyn/rigid_body.hpp>
+
+bool dgnc::fsim::run(const std::string& fpath, bool plot)
+{
+	exec_t runner(fpath);
+	return runner(plot);
+}
 
 //==============================================================================
 dgnc::fsim::exec_t::exec_t(std::string fpath)
@@ -49,9 +54,11 @@ dgnc::fsim::exec_t::exec_t(std::string fpath)
 	toff    = atof(f.branch("simulation.start time" ).get().c_str());
 	tlaunch = atof(f.branch("simulation.launch time").get().c_str());
 
-	mdl  = f.branch("simulation.model root"  ).get();
-	exp  = f.branch("simulation.export root" ).get();
-	wind = f.branch("simulation.wind profile").get();
+	mdl   = f.branch("simulation.model root"  ).get();
+	exp   = f.branch("simulation.export root" ).get();
+	wind  = f.branch("simulation.wind profile").get();
+	w_max = math::d2r(atof(f.branch("simulation.max angular rate").get().c_str()));
+
 	std::string ss = f.branch("simulation.separation rot").get();
 	if(ss.empty())
 		sep_rot = 0;
@@ -59,7 +66,7 @@ dgnc::fsim::exec_t::exec_t(std::string fpath)
 	{
 		double p, q, r;
 		std::sscanf(ss.c_str(), "%lf%lf%lf", &p, &q, &r);
-		sep_rot.x() = math::d2r (p);
+		sep_rot.x() = math::d2r(p);
 		sep_rot.y() = math::d2r(q);
 		sep_rot.z() = math::d2r(r);
 	}

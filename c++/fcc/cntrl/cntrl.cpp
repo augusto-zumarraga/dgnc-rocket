@@ -6,7 +6,7 @@
 /// \brief
 /// \author   Augusto Zumarraga
 /// \date     creación: 27/06/2024
-/// \date     revisión: 04/09/2024
+/// \date     revisión: 27/09/2024
 //______________________________________________________________________________
 
 /*
@@ -121,7 +121,7 @@ void roll_rcs_t::reset()
 void roll_rcs_t::cloop(const ins_data_t& ins, double p_ref)
 {
 	const double g = gains(ins.elapsed);
-	double e = p_ref - ins.wbi.x();
+	double e = ins.wbi.x() - p_ref;
 	m_rc = g*e;
 }
 void roll_rcs_t::update(cmnds::cont_t& c)

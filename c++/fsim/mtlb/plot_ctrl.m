@@ -51,6 +51,7 @@ legend('p', 'q', 'r');
 
 subplot(3,3,5); 
 plot(t, dyn.dy(rng), t, dyn.dz(rng), t, dyn.da(rng), t, dyn.rc(rng), 'LineWidth', line_width); 
+ylim([-1.1 1.1])
 grid on;
 ylabel('actuators');
 legend('d_y', 'd_z', 'd_a', 'rcs');

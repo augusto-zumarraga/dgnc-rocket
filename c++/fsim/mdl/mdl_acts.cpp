@@ -6,7 +6,7 @@
 /// \brief
 /// \author   Augusto Zumarraga
 /// \date     creación: 04/09/2024
-/// \date     revisión: 04/09/2024
+/// \date     revisión: 27/09/2024
 //______________________________________________________________________________
 
 /*
@@ -101,7 +101,9 @@ void rocket_sfc_t::add_roll_fin()
 }
 void rocket_sfc_t::add_roll_rcs()
 {
-	vector    pos(1,0,0.35/2);
+	double z = 0.35/2;
+
+	vector    pos(1,0,0);
 	direction axs(0,1,0);
 	scalar    thrust(0.2);
 	second_t  t_burn(0.13);
@@ -109,17 +111,21 @@ void rocket_sfc_t::add_roll_rcs()
 	second_t  t_cycl(0.2);
 
 	m_rcsa.axes.resize(4);
-	// +z+y
+
+	// +p
+	pos.z() = -z;
+	axs.y() =  1;
 	m_rcsa.axes[0] = rcsa_t::axis_t(pos, axs, thrust, t_burn, t_decy, t_cycl);
-	// -z+y
-	pos.z() *= -1;
+	pos.z() =  z;
+	axs.y() = -1;
 	m_rcsa.axes[1] = rcsa_t::axis_t(pos, axs, thrust, t_burn, t_decy, t_cycl);
 
-	// -z-y
-	axs.y() *= -1;
+	// -p
+	pos.z() = -z;
+	axs.y() = -1;
 	m_rcsa.axes[2] = rcsa_t::axis_t(pos, axs, thrust, t_burn, t_decy, t_cycl);
-	// +z-y
-	pos.z() *= -1;
+	pos.z() =  z;
+	axs.y() =  1;
 	m_rcsa.axes[3] = rcsa_t::axis_t(pos, axs, thrust, t_burn, t_decy, t_cycl);
 
 	m_acts.rcs().setup(t_cycl);
