@@ -30,7 +30,7 @@
     FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
     IN THE SOFTWARE.
 */
-#include "plan.hpp"
+#include "loader.hpp"
 #include <dgnc/store/csv_file.hpp>
 #include <dgnc/store/ini_file.hpp>
 #include <dgnc/numeric/interp.hpp>
@@ -39,7 +39,7 @@
 #include <cstdlib>
 
 using namespace dgnc;
-using namespace rocket;
+using namespace gnc;
 
 using geom::radian;
 using geom::degree;
@@ -91,7 +91,7 @@ std::string check_msg( const char* sz_msg
 	return ss.str();
 }
 
-void read_gains(const data::ini_file& f, dgnc::rocket::plan_t::pd_gains_t& fg, gnc::ctrl::st_params_t& cp, int S, bool roll)
+void read_gains(const data::ini_file& f, gnc::fcc_loader_t::pd_gains_t& fg, gnc::ctrl::st_params_t& cp, int S, bool roll)
 {
 	std::ostringstream ss;
 	ss << "gains_S" << S << (roll ? ".roll_" : ".pitch_");
@@ -113,7 +113,7 @@ void read_gains(const data::ini_file& f, dgnc::rocket::plan_t::pd_gains_t& fg, g
 #define check_failure(msg) std::runtime_error(check_msg(#msg,__LINE__,__FILE__))
 
 //------------------------------------------------------------------------------
-plan_t::plan_t(std::string fpath)
+fcc_loader_t::fcc_loader_t(std::string fpath)
 {
 	if(!fpath.empty() && fpath.back() != '/')
 		fpath += '/';
@@ -123,7 +123,7 @@ plan_t::plan_t(std::string fpath)
 	import_gains (1, (fpath + "gains_S2.csv").c_str());
 }
 
-void plan_t::import_params(const char* fname)
+void fcc_loader_t::import_params(const char* fname)
 {
 	ctx_t ctx = fname;
 	data::ini_file f(fname);
@@ -212,7 +212,7 @@ void plan_t::import_params(const char* fname)
 	read_gains(f, m_f_gains[1].ptch, m_s2_ptch, 2, false);
 }
 
-void plan_t::import_wire(const char* fname)
+void fcc_loader_t::import_wire(const char* fname)
 {
 	ctx_t ctx = fname;
 	csv::head_table_t f = csv::read(fname, 1, ' ');
@@ -327,7 +327,7 @@ void plan_t::import_wire(const char* fname)
 	m_launch_state.att = ned_to_ecef(m_launch_state.pos, m_wire.front());
 }
 
-void plan_t::import_gains(unsigned stage, const char* fname)
+void fcc_loader_t::import_gains(unsigned stage, const char* fname)
 {
 	ctx_t ctx = fname;
 	csv::head_table_t f = csv::read(fname, 1, ' ');
@@ -408,7 +408,7 @@ void plan_t::import_gains(unsigned stage, const char* fname)
 	}
 }
 
-void plan_t::setup(gnc::fcc_t& f) const
+void fcc_loader_t::setup(gnc::fcc_t& f) const
 {
 	f.plan().R_orbit = m_orbit.radius();
 	f.plan().times   = m_times;
@@ -426,7 +426,7 @@ void plan_t::setup(gnc::fcc_t& f) const
 	f.ctrl_s2(). r_gains.fill(m_gains[1].roll.f.begin(), m_gains[1].roll.f.size(), m_times.sampling);
 }
 
-void plan_t::print(std::ostream& s) const
+void fcc_loader_t::print(std::ostream& s) const
 {
 	using ::operator<<;
 	navs::ecef::nav_t nav = m_launch_state.pos;

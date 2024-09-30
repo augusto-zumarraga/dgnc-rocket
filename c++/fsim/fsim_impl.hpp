@@ -53,6 +53,29 @@ private:
 
 //------------------------------------------------------------------------------
 /// Ejecutor de la simulación
+struct rocket_t
+{
+	rocket_mdl_t S1, S2, *p_stage;
+	logger_t& log;
+	double   ts;
+	unsigned mark;
+	bool     eng;
+	rocket_mdl_t::vect_t xo;
+	navs::angle_rate_t sep_rot;
+
+	rocket_t(const std::string& mdl, const std::string& wind, double _ts, logger_t& l);
+	rocket_mdl_t* operator->() { return  p_stage; }
+	rocket_mdl_t& operator* () { return *p_stage; }
+	operator rocket_mdl_t&  () { return *p_stage; }
+
+	void init (second_t toff, const navs::ecef::state_t& po, navs::angle_rate_t sr);
+	void cmnds(second_t t, const gnc::cmnds::cont_t& AOs, const gnc::cmnds::bool_t& DOs);
+	void on_separation(bool b_trigger);
+	void on_release   (bool b_trigger);
+};
+
+//------------------------------------------------------------------------------
+/// Ejecutor de la simulación
 class exec_t
 {
 public:

@@ -53,17 +53,17 @@ void flight_t::setup(pguid_t& p)
 //==============================================================================
 fcc_t::fcc_t()
 : fsm_t(state_init)
-, m_release(true)
 {
 	m_tlmy.reset();
 }
-void fcc_t::update_tlmy()
+fcc_t& fcc_t::update_tlmy()
 {
 	m_tlmy.state = current_state_id();
 	if(exo_phase())
 		m_cntrl_s2.update(m_tlmy.ctl);
 	else
 		m_cntrl_s1.update(m_tlmy.ctl);
+	return *this;
 }
 fcc_t& fcc_t::reset(const ins_data_t& s, e_states st, second_t t_launch, second_t t_sep)
 {
@@ -115,6 +115,7 @@ void fcc_t::init_on_timer(const ins_data_t& s)
 //------------------------------------------------------------------------------
 void fcc_t::armed_on_entry(const ins_data_t& s)
 {
+	m_cmnd.reset();
 	m_alarm.set(s.elapsed + second_t(10));
 }
 void fcc_t::armed_on_timer(const ins_data_t& s)
@@ -182,7 +183,6 @@ void fcc_t::separation_on_entry(const ins_data_t& s)
 	m_cntrl_s1.reset();
 	m_cntrl_s2.reset();
 	m_cmnd.sep = true;
-	m_release  = true;
 	m_plan.start_separation(s.elapsed);
 }
 void fcc_t::separation_on_timer(const ins_data_t& s)
@@ -218,8 +218,8 @@ void fcc_t::gravity_turn_on_timer(const ins_data_t& s)
 
 	m_cntrl_s2.pointing_loop(m_tlmy.e_dir, s);
 
-	if(m_release && m_plan.do_release(s.lla.alt))
-		m_cmnd.rel = true;
+//	if(m_release && m_plan.do_release(s.lla.alt))
+//		m_cmnd.rel = true;
 	if(m_plan.do_steering(s.lla.alt))
 		set_state(state_steering, s);
 }
@@ -245,8 +245,7 @@ void fcc_t::steering_on_timer(const ins_data_t& s)
 		m_tlmy.e_dir = nv.att >> m_pguid.out().dir;
 		m_cntrl_s2.pointing_loop(m_tlmy.e_dir, s);
 
-		if(m_release && m_plan.do_release(s.lla.alt))
-			m_cmnd.rel = true;
+		m_cmnd.rel = m_plan.do_release(s.lla.alt);
 		if(m_pguid.seco())
 			set_state(state_engine_off, s);
 	}

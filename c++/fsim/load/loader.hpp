@@ -36,10 +36,10 @@
 #include <dgnc/navs/orb.hpp>
 #include <dgnc/numeric/poly.hpp>
 
-namespace dgnc { namespace rocket {
+namespace gnc {
 
 //------------------------------------------------------------------------------
-class plan_t
+class fcc_loader_t
 {
 public:
 
@@ -84,10 +84,10 @@ public:
 		}
 	};
 
-	typedef gnc::flight_t::times_t  times_t;
-	typedef gnc::flight_t::params_t params_t;
-	typedef gnc::ctrl::st_params_t  cparams_t;
-	typedef navs::orb::circular_t   orbit_t;
+	typedef flight_t::times_t  times_t;
+	typedef flight_t::params_t params_t;
+	typedef ctrl::st_params_t  cparams_t;
+	typedef dgnc::navs::orb::circular_t orbit_t;
 	typedef std::vector<gnc::att_t> wire_t;
 
 	// En <path>
@@ -118,20 +118,20 @@ public:
 	//    /gains_S1.scv   ganancias de primera etapa para cada instante de muestreo
 	//    /gains_S2.scv   ganancias de segunda etapa para cada instante de muestreo
 	//
-	plan_t(std::string path);
+	fcc_loader_t(std::string path);
 
 	void print(std::ostream& s) const;
 
-	const navs::ecef::state_t& launch_state() const { return m_launch_state; }
-	const orbit_t&             orbit       () const { return m_orbit; }
-	const times_t&             times       () const { return m_times; }
-	second_t                   sample_time () const { return m_times.sampling; }
-	second_t                   meco        () const { return m_times.s1_burn; }
-	second_t                   seco        () const { return m_times.s1_burn
-			                                               + m_times.s1_coast_time
-			                                               + m_times.separation_time
-														   + m_times.s2_fire_delay
-														   + m_times.s2_burn; }
+	const ecef::state_t& launch_state() const { return m_launch_state; }
+	const orbit_t&       orbit       () const { return m_orbit; }
+	const times_t&       times       () const { return m_times; }
+	second_t             sample_time () const { return m_times.sampling; }
+	second_t             meco        () const { return m_times.s1_burn; }
+	second_t             seco        () const { return m_times.s1_burn
+			                                         + m_times.s1_coast_time
+			                                         + m_times.separation_time
+													 + m_times.s2_fire_delay
+													 + m_times.s2_burn; }
 	void setup(gnc::fcc_t&) const;
 
 protected:
@@ -140,23 +140,23 @@ protected:
 	void import_wire  (const char* fname);
 	void import_params(const char* fname);
 
-	wire_t              m_wire;
-	times_t             m_times;
-	params_t            m_params;
-	orbit_t             m_orbit;
-	navs::ecef::state_t m_launch_state;
+	wire_t          m_wire;
+	times_t         m_times;
+	params_t        m_params;
+	orbit_t         m_orbit;
+	ecef::state_t   m_launch_state;
 
-	gain_schedule_t     m_gains[2];
-	gains_t             m_f_gains[2];
-	cparams_t           m_s1_roll;
-	cparams_t           m_s1_ptch;
-	cparams_t           m_s2_roll;
-	cparams_t           m_s2_ptch;
+	gain_schedule_t m_gains[2];
+	gains_t         m_f_gains[2];
+	cparams_t       m_s1_roll;
+	cparams_t       m_s1_ptch;
+	cparams_t       m_s2_roll;
+	cparams_t       m_s2_ptch;
 };
 
-}}
+}
 
-inline std::ostream& operator<<(std::ostream& s, const dgnc::rocket::plan_t& f)
+inline std::ostream& operator<<(std::ostream& s, const gnc::fcc_loader_t& f)
 {
 	f.print(s);
 	return s;

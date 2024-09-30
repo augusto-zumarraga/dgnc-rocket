@@ -8,7 +8,7 @@
 /// \date     creación: 10/06/2024
 /// \date     revisión: 18/08/2024 flex
 /// \date     revisión: 03/09/2024 RCS
-/// \date     revisión: 05/09/2024
+/// \date     revisión: 30/09/2024 lock_t
 //______________________________________________________________________________
 
 /*
@@ -35,6 +35,7 @@
 #include "mdl_def.hpp"
 #include <dgnc/rocket/dyn/rigid_body.hpp>
 #include <dgnc/numeric/ode.hpp>
+#include <functional>
 #include "wind.hpp"
 
 namespace dgnc { namespace fsim {
@@ -115,6 +116,33 @@ public:
 			return t_fire_p ? 1 : (t_fire_n ? -1 : 0);
 		}
 	};
+	struct lock_t
+	{
+		std::function<void(bool)> on_event;
+		second_t t_done, t_time;
+
+		lock_t() : t_done(0), t_time(0)
+		{}
+		void loose(second_t tm)
+		{
+			if(t_time)
+			{
+				t_done = tm + t_time;
+				t_time = second_t(0);
+				if(on_event)
+					on_event(true);
+			}
+		}
+		void operator()(second_t tm)
+		{
+			if(t_done && tm > t_done)
+			{
+				t_done = second_t(0);
+				if(on_event)
+					on_event(false);
+			}
+		}
+	};
 
 	//--------------------------------------------------------------------------
 	// Comandos
@@ -144,10 +172,9 @@ public:
 	{
 		return m_rcs_x;
 	}
-	x_rsc_t& rcs()
-	{
-		return m_rcs_x;
-	}
+	x_rsc_t& rcs() { return m_rcs_x; }
+	 lock_t& sep() { return m_sep; }
+	 lock_t& rel() { return m_rel; }
 
 	actuators_t();
 
@@ -173,6 +200,7 @@ protected:
 	servo_t m_ail;
 	 flow_t m_flow;
 	x_rsc_t m_rcs_x;
+	 lock_t m_sep, m_rel;
 };
 
 //------------------------------------------------------------------------------

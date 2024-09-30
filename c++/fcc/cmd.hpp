@@ -56,6 +56,7 @@ struct bool_t
 
 	bool_t() : eng(false), sep(false), rel(false)
 	{}
+	void reset() { eng = sep = rel = false; }
 };
 
 }}

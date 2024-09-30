@@ -35,7 +35,7 @@
 #include <fstream>
 #include <dgnc/geom.hpp>
 #include "mdl/mdl.hpp"
-#include "tray/plan.hpp"
+#include "load/loader.hpp"
 
 namespace dgnc { namespace fsim {
 

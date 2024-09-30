@@ -79,132 +79,79 @@ dgnc::fsim::exec_t::exec_t(std::string fpath)
 		tint = 0.001;
 }
 
-
 //------------------------------------------------------------------------------
 bool dgnc::fsim::exec_t::operator()(bool do_plot)
 {
 	if(exp.empty())
 		do_plot = true;
-	gnc::fcc_t fcc;
 	logger_t log(exp.empty() ? exp : exp + "_log.txt");
 
 	//________________________________________________________ Pre-Flight setup
-	rocket::plan_t plan(pln);
-	log << plan << '\n';
+	gnc::fcc_loader_t loader(pln);
+	log << loader << '\n';
 
-	plan.setup(fcc);
-	orbit = plan.orbit();
+	gnc::fcc_t FCC;
+	loader.setup(FCC);
+	orbit = loader.orbit();
 
 	//______________________________________________________ SIM Inicialization
-	if(tsim == 0)
-		tsim = plan.seco();
-	double ts = plan.sample_time();
+	if  (tsim == 0)
+		 tsim = loader.seco();
+	double ts = loader.sample_time();
 
-	solver_t     slv;
-	rocket_mdl_t S1((mdl + "1").c_str());
-	rocket_mdl_t S2((mdl + "2").c_str());
+	solver_t slv;
+	rocket_t rckt(mdl, wind, ts, log);
+	rckt.init(toff, loader.launch_state(), sep_rot);
 
-	if(!wind.empty())
-		S1.wind().import(wind.c_str());
-	S1.add_roll_fin();
-	S2.add_roll_rcs();
-
+	//--------------------------------------------------------------------------
 	unsigned Nk = 1/ts, N = tsim*Nk;
-
 	solver_t::result_t sim(N);
 	sim_record_t       sim_rec;
 	fcc_record_t       fcc_rec;
 	gnc::ins_data_t    fcc_sns;
 
-	rocket_mdl_t::vect_t xo;
-	xo.elapsed = toff;
-	S1.init(xo, plan.launch_state());
-
 	sim_rec.reserve(N);
 	fcc_rec.reserve(N);
-	sim.push(0, xo);
-	rocket_mdl_t* p_stage = &S1;
+	sim.push(0, rckt.xo);
 
-	int st = fcc.state_trace();
-	unsigned mark = 0;
-	bool     eng  = false, rel = false;
+	int st = FCC.state_trace();
 	//________________________________________________________________ SIM Loop
 
 	for(unsigned k=0; k<N; ++k)
 	{
 		double t = k * ts + toff;
-		xo.elapsed = t; // para mitigar errores numéricos
-		p_stage->sample_begin(t, xo, ts);
+		rckt.xo.elapsed = t; // para mitigar errores numéricos
+		rckt->sample_begin(t, rckt.xo, ts);
 
 		// registro de los resultados de la simulación
-		sim_rec.push_back(p_stage->sim_info());
+		sim_rec.push_back(rckt->sim_info());
 		// terminación temprana de la simulación
 		if(!fts(sim_rec.back(), log))
 			break;
 
 		// ------------------------------------------------------- SAMPLE STEP
-
-		update(sim_rec.back(), fcc_sns); // simular las mediciones
+		update(sim_rec.back(), fcc_sns);     // simular las mediciones
 		if(t >= tlaunch)
-			fcc.arm(fcc_sns);
-		fcc.on_time(fcc_sns);            // ejecutar el control de vuelo
-		fcc.update_tlmy();               // actualizar la telemetría
-		fcc_rec.push_back(fcc.tlmy());
+			FCC.arm(fcc_sns);
+		FCC.on_time(fcc_sns);                // ejecutar el control de vuelo
 
-		if(st != fcc.state_trace())
-		{
-			// reportar cambios de estado
-			st = fcc.state_trace();
-			on_state(st, sim_rec.back(), log);
-		}
-		// propagar los comandos
-		p_stage->acts().tvc(fcc.AOs().dy , fcc.AOs().dz);
-		p_stage->acts().ail(fcc.AOs().da );
-		p_stage->acts().rcs(fcc.AOs().rc );
-		p_stage->acts().eng(fcc.DOs().eng);
+		FCC.update_tlmy();                   // actualizar la telemetría
+		fcc_rec.push_back(FCC.tlmy());
 
-		// -------------------------------------------------    EVENTS HANDLING
-		if(eng != fcc.DOs().eng)
-		{
-			eng = fcc.DOs().eng;
-			if(eng)
-				log << '\n' << t << " : IGNITION" << '\n';
-			else
-				log << '\n' << t << " : CUT OFF" << '\n';
-		}
-		// ------------------------------------------------- EVENTS HANDLING S1
-		if(p_stage == &S2)
-		{
-			if(fcc.DOs().sep && fcc.plan().separation_completed(t))
+			if(st != FCC.state_trace())
 			{
-				fcc.DOs().sep = false;
-				xo.wbi += sep_rot;
-				log << '\n' << t << " : SEPARATION COMPLETED" << '\n';
+				// reportar cambios de estado
+				st = FCC.state_trace();
+				on_state(st, sim_rec.back(), log);
 			}
-			if(!rel && fcc.DOs().rel)
-			{
-				rel = true;
-				double me = p_stage->mass().extra.eject();
-				xo.mass -= me;
-				log << '\n'  << t << " : MASS RELEASE (" << me << "kg)" << '\n';
-				fcc.on_release();
-			}
-		}
-		else
-		// ------------------------------------------------- EVENTS HANDLING S2
-		if(fcc.DOs().sep)
-		{
-			mark = k;
-			p_stage = &S2;
-			S2.init(xo);
-			log << '\n' << t << " : SEPARATION START" << '\n';
-		}
+
+		rckt.cmnds(t, FCC.AOs(), FCC.DOs()); // propagar los comandos
 
 		//-------------------------------------------------------- TIME DISPLAY
-		if(fcc.state_trace() == fcc_t::st_armed)
+		if(FCC.state_trace() == fcc_t::st_armed)
 		{
 			static int sec_last = 0;
-			int sec_now = fcc.time_to_launch(t).value;
+			int sec_now = FCC.time_to_launch(t).value;
 			if(sec_last != sec_now)
 			{
 				sec_last = sec_now;
@@ -221,14 +168,14 @@ bool dgnc::fsim::exec_t::operator()(bool do_plot)
 
 		// --------------------------------------------------------- TIME STEP
 		solver_t::times_t  tm(t, t+ts, tint);
-		solver_t::result_t res = slv(*p_stage, xo, tm);
+		solver_t::result_t res = slv(rckt, rckt.xo, tm);
 		t += ts;
-		xo = res.state().back();
-		xo.att.normalize();
-		assert(std::abs(xo.elapsed - second_t(t)) < 1e-3);
-		xo.elapsed = t;
-		p_stage->sample_end(t, xo, ts);
-		sim.push(t, xo);
+		rckt.xo = res.state().back();
+		rckt.xo.att.normalize();
+		assert(std::abs(rckt.xo.elapsed - second_t(t)) < 1e-3);
+		rckt.xo.elapsed = t;
+		rckt->sample_end(t, rckt.xo, ts);
+		sim.push(t, rckt.xo);
 	}
 
 	//__________________________________________________________________ Epilog
@@ -251,9 +198,9 @@ bool dgnc::fsim::exec_t::operator()(bool do_plot)
 	}
 	{
 		// Plot results
-		plot_gnc(sim, sim_rec, fcc_rec, mark, fgnc, do_plot);
-		plot_dyn(sim, sim_rec, mark, fdyn, do_plot);
-		plot_nav(sim, mark, fnav, do_plot);
+		plot_gnc(sim, sim_rec, fcc_rec, rckt.mark, fgnc, do_plot);
+		plot_dyn(sim, sim_rec, rckt.mark, fdyn, do_plot);
+		plot_nav(sim, rckt.mark, fnav, do_plot);
 	}
 	return do_plot;
 }

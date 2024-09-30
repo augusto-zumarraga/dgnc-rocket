@@ -8,6 +8,7 @@
 /// \date     creación: 10/06/2024
 /// \date     revisión: 21/08/2024 w x Jw
 /// \date     revisión: 14/09/2024 flex
+/// \date     revisión: 14/09/2024 lock_t
 //______________________________________________________________________________
 
 /*
@@ -148,7 +149,8 @@ inline void rocket_sfc_t::sample_begin(double t, const S& x, double ts)
 template <class S>
 inline void rocket_sfc_t::sample_end(double t, const S& x, double ts)
 {
-
+	m_acts.sep()(t);
+	m_acts.rel()(t);
 }
 template <class S>
 rocket_sfc_t::rates_t rocket_sfc_t::compute(double t, const S& x) const

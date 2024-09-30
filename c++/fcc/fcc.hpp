@@ -40,6 +40,8 @@
 
 namespace gnc {
 
+class fcc_loader;
+
 //------------------------------------------------------------------------------
 class fcc_t : protected patterns::t_finite_state_machine<fcc_t, const ins_data_t>
 {
@@ -87,46 +89,48 @@ public:
 	};
 
 	fcc_t();
-	fcc_t& on_time(const ins_data_t& ins)
-	{
-		on_event(ins);
-		return *this;
-	}
+
+	//--------------------------------------------------------------------------
 	fcc_t& arm(const ins_data_t& ins)
 	{
 		if(current_state_id() == st_init)
 			set_state(state_armed, ins);
 		return *this;
 	}
+	fcc_t& on_time(const ins_data_t& ins)
+	{
+		on_event(ins);
+		return *this;
+	}
+	fcc_t& update_tlmy();
 	fcc_t& reset(const ins_data_t&, e_states st, second_t t_launch, second_t t_sep);
 
-	void on_release()
-	{
-		m_release = m_cmnd.rel = false;
-	}
+	//--------------------------------------------------------------------------
 	int state_trace() const
 	{
 		return current_state_id() == st_steering
 			 ? int(m_pguid.state()) + st_last :
 			   current_state_id();
 	}
-	const cmnds::cont_t& AOs() const { return exo_phase() ? m_cntrl_s2.cmnd() : m_cntrl_s1.cmnd(); }
-    const cmnds::bool_t& DOs() const { return m_cmnd; }
-	  	  cmnds::bool_t& DOs()       { return m_cmnd; }
-
-	void update_tlmy();
-	const
-	 tlmy_t& tlmy   () const { return m_tlmy; }
-	c_atm_t& ctrl_s1()       { return m_cntrl_s1; }
-	c_exo_t& ctrl_s2()       { return m_cntrl_s2; }
-	const
-    flight_t& plan  () const { return m_plan; }
-    flight_t& plan  ()       { return m_plan; }
-	bool exo_phase  () const { return current_state_id() > st_meco; }
+	bool exo_phase() const
+	{
+		return current_state_id() > st_meco;
+	}
 	second_t time_to_launch(second_t t) const
 	{
 		return current_state_id() == st_armed ? m_alarm.remaining(t) : second_t(0);
 	}
+	const cmnds::cont_t& AOs () const { return exo_phase() ? m_cntrl_s2.cmnd() : m_cntrl_s1.cmnd(); }
+    const cmnds::bool_t& DOs () const { return m_cmnd; }
+	const        tlmy_t& tlmy() const { return m_tlmy; }
+	const      flight_t& plan() const { return m_plan; }
+
+protected:
+
+	friend class fcc_loader_t;
+	c_atm_t& ctrl_s1() { return m_cntrl_s1; }
+	c_exo_t& ctrl_s2() { return m_cntrl_s2; }
+    flight_t& plan  () { return m_plan; }
 
 private:
 
@@ -138,7 +142,6 @@ private:
 	tlmy_t   m_tlmy;
 
 	cmnds::bool_t m_cmnd;
-	bool       m_release;
 
 	typedef patterns::t_finite_state_machine<fcc_t, const ins_data_t> fsm_t;
 	typedef fsm_t::pstate_t pstate_t;
