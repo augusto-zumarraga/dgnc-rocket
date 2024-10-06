@@ -60,6 +60,7 @@ public:
 	, st_meco
 	, st_coasting
 	// segunda etapa
+	, st_atm = st_coasting
 	, st_separation
 	, st_fire_s2
 	, st_gravity_turn
@@ -97,6 +98,12 @@ public:
 			set_state(state_armed, ins);
 		return *this;
 	}
+	fcc_t& abort(const ins_data_t& ins)
+	{
+		if(current_state_id() == st_armed)
+			set_state(state_init, ins);
+		return *this;
+	}
 	fcc_t& on_time(const ins_data_t& ins)
 	{
 		on_event(ins);
@@ -114,7 +121,7 @@ public:
 	}
 	bool exo_phase() const
 	{
-		return current_state_id() > st_meco;
+		return current_state_id() > st_atm;
 	}
 	second_t time_to_launch(second_t t) const
 	{

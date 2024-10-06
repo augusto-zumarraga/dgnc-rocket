@@ -1,10 +1,10 @@
 function f = show_flight(fname, nfig, do_import)
     
     if nargin < 2
-        nfig = [1 2 3];
+        nfig = [1 2 3 4];
     else
         if length(nfig) == 1
-            nfig = [0 1 2] + nfig;
+            nfig = [0 1 2 3] + nfig;
         end
     end    
     fpath = '../../../eclipse/fsim/rec/';
@@ -28,13 +28,16 @@ function f = show_flight(fname, nfig, do_import)
     end
     rng = find(f.frc.T > 0, 1, 'first'):find(f.frc.T > 0, 1, 'last');    
     if nfig(1)
-        plot_gnc (f, [], [], nfig(1), rng); 
+        plot_tray(f, [], [], [], nfig(1)); 
     end
     if nfig(2)
-        plot_ctrl(f, [], [], nfig(2), rng); 
-    end 
+        plot_gnc (f, [], [], nfig(2), rng); 
+    end
     if nfig(3)
-        plot_tray(f, [], [], [], nfig(3)); 
+        plot_ctrl_s1(f, nfig(3)); 
+    end 
+    if nfig(4)
+        plot_ctrl_s2(f, nfig(4)); 
     end
     if nargout == 0
         f = [];

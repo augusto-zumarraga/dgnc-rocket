@@ -203,16 +203,26 @@ void fsim::plot_gnc( const solver_t::result_t& sim
     	// norma del error de dirección
     	its.push_back(eD.begin());
 
+    	// caternión de referencia
+        dbl_vect qn(N), qx(N), qy(N), qz(N);
+        std::transform(gnc_data.begin(), gnc_data.end(), qn.begin(), get_qn);
+        std::transform(gnc_data.begin(), gnc_data.end(), qx.begin(), get_qx);
+        std::transform(gnc_data.begin(), gnc_data.end(), qy.begin(), get_qy);
+        std::transform(gnc_data.begin(), gnc_data.end(), qz.begin(), get_qz);
+    	its.push_back(qn.begin());
+    	its.push_back(qx.begin());
+    	its.push_back(qy.begin());
+    	its.push_back(qz.begin());
+
     	// error del cuaternión de actitud
-        dbl_vect en(N), ex(N), ey(N), ez(N);
-        std::transform(gnc_data.begin(), gnc_data.end(), en.begin(), get_en);
-        std::transform(gnc_data.begin(), gnc_data.end(), ex.begin(), get_ex);
-        std::transform(gnc_data.begin(), gnc_data.end(), ey.begin(), get_ey);
-        std::transform(gnc_data.begin(), gnc_data.end(), ez.begin(), get_ez);
-    	its.push_back(en.begin());
-    	its.push_back(ex.begin());
-    	its.push_back(ey.begin());
-    	its.push_back(ez.begin());
+        std::transform(gnc_data.begin(), gnc_data.end(), qn.begin(), get_en);
+        std::transform(gnc_data.begin(), gnc_data.end(), qx.begin(), get_ex);
+        std::transform(gnc_data.begin(), gnc_data.end(), qy.begin(), get_ey);
+        std::transform(gnc_data.begin(), gnc_data.end(), qz.begin(), get_ez);
+    	its.push_back(qn.begin());
+    	its.push_back(qx.begin());
+    	its.push_back(qy.begin());
+    	its.push_back(qz.begin());
 
     	// error de velocidad angular
     	its.push_back(ep.begin());

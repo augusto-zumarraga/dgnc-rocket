@@ -1,0 +1,127 @@
+\documentclass[rocket.tex]{subfiles}
+
+\begin{document}
+
+\subsection{Estructura}
+
+
+\subsection{Código de Base}
+
+Se utiliza código de base definido en un \texttt{namespace dgnc} para:
+
+\begin{itemize}
+\item conversiones automáticas
+\item duración temporal
+\item cálculo matricial básico
+\item interpolación numérica
+\item cálculo geométrico
+\item cómputos de navegación 
+\item implementación de máquinas de estado finito (FSM) 
+\end{itemize}
+
+\paragraph{Conversiones automáticas}
+
+Se declara un template de la forma:
+
+\begin{lstlisting}[language=c++, xleftmargin=3cm]%, basicstyle=\scriptsize]
+
+template <class FORM, class TO>
+struct t_convert;
+
+\end{lstlisting}
+
+Que se especializa para realizar las conversiones conocidas definiendo un constructor del tipo:
+
+\begin{lstlisting}[language=c++, xleftmargin=3cm]%, basicstyle=\scriptsize]
+
+template<> struct t_convert<FROM, TO> 
+{ 
+	explicit t_convert(const FROM& src, TO& dst)
+	{ 
+		... 
+	} 
+};
+
+\end{lstlisting}
+
+\paragraph{Duración temporal}
+
+
+
+\paragraph{Cálculo matricial básico}
+
+
+
+\paragraph{Interpolación numérica}
+
+
+
+\paragraph{Cálculo geométrico}
+
+
+
+\paragraph{Cómputos de navegación} 
+
+
+
+\paragraph{Implementación de máquinas de estado finito (FSM)}
+
+
+
+
+
+\subsection{Plan de Vuelo}
+
+
+
+\subsection{Control de Vuelo}
+
+
+\begin{lstlisting}[language=c++, xleftmargin=3cm, basicstyle=\scriptsize]
+
+struct ins_data_t : public ecef::state_t
+{
+	typedef ecef::state_t nav_data_t;
+
+	const
+	nav_data_t& nav() const { return *this; }
+	nav_data_t& nav()       { return *this; }
+
+	ecef::lla_t  lla;
+	angle_rate_t wbi;
+	force_t      sfc;
+};
+
+
+class fcc_t : protected patterns::t_finite_state_machine<fcc_t, const ins_data_t>
+{
+
+	typedef pguid_t     guide_t;
+	typedef ctrl::atm_t c_atm_t;
+	typedef ctrl::exo_t c_exo_t;
+
+	...
+
+	static state_t state_init;
+	static state_t state_armed;
+	static state_t state_ascent;
+	static state_t state_load_relief;
+	static state_t state_meco;
+	static state_t state_separation;
+	static state_t state_fire_s2;
+	static state_t state_gravity_turn;
+	static state_t state_steering;
+	static state_t state_low_thrust;
+	static state_t state_coasting;
+	static state_t state_engine_off;
+	static state_t state_orbit;   
+}    
+
+\end{lstlisting}
+
+
+
+
+
+
+\end{document}

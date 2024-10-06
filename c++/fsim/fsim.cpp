@@ -6,7 +6,7 @@
 /// \brief
 /// \author   Augusto Zumarraga
 /// \date     creación: 10/06/2024
-/// \date     revisión: 25/09/2024
+/// \date     revisión: 05/10/2024
 //______________________________________________________________________________
 
 /*
@@ -40,6 +40,11 @@ bool dgnc::fsim::run(const std::string& fpath, bool plot)
 	exec_t runner(fpath);
 	return runner(plot);
 }
+const char* dgnc::fsim::version()
+{
+	return "FSIM Rocket v1.0.0 [" __DATE__ " - " __TIME__ "]";
+}
+
 
 //==============================================================================
 dgnc::fsim::exec_t::exec_t(std::string fpath)
@@ -54,10 +59,24 @@ dgnc::fsim::exec_t::exec_t(std::string fpath)
 	toff    = atof(f.branch("simulation.start time" ).get().c_str());
 	tlaunch = atof(f.branch("simulation.launch time").get().c_str());
 
-	mdl   = f.branch("simulation.model root"  ).get();
-	exp   = f.branch("simulation.export root" ).get();
-	wind  = f.branch("simulation.wind profile").get();
-	w_max = math::d2r(atof(f.branch("simulation.max angular rate").get().c_str()));
+	std::string
+	mdl    = f.branch("simulation.model root"  ).get();
+	mdl_s1 = f.branch("simulation.stage_1"     ).get();
+	mdl_s2 = f.branch("simulation.stage_2"     ).get();
+	exp    = f.branch("simulation.export root" ).get();
+	wind   = f.branch("simulation.wind profile").get();
+	w_max  = math::d2r(atof(f.branch("simulation.max angular rate").get().c_str()));
+
+	if( mdl.empty())
+		mdl = "data/S";
+	if( mdl_s1.empty())
+		mdl_s1 = mdl + '1';
+	else
+		mdl_s1 = mdl + mdl_s1;
+	if( mdl_s2.empty())
+		mdl_s2 = mdl + '2';
+	else
+		mdl_s2 = mdl + mdl_s2;
 
 	std::string ss = f.branch("simulation.separation rot").get();
 	if(ss.empty())
@@ -71,8 +90,6 @@ dgnc::fsim::exec_t::exec_t(std::string fpath)
 		sep_rot.z() = math::d2r(r);
 	}
 
-	if(mdl.empty())
-		mdl = "data/S";
 	if(!tsim)
 		tsim = 500;
 	if(!tint)
@@ -85,10 +102,18 @@ bool dgnc::fsim::exec_t::operator()(bool do_plot)
 	if(exp.empty())
 		do_plot = true;
 	logger_t log(exp.empty() ? exp : exp + "_log.txt");
+	log << version() << '\n'
+		<< std::string(strlen(version()), '-')
+		<< "\n\n";
+
+	log << "STAGE 1: " << mdl_s1 << '\n'
+		<< "STAGE 2: " << mdl_s2 << '\n';
+	if(!wind.empty())
+	log << "WIND   : " << wind << '\n';
 
 	//________________________________________________________ Pre-Flight setup
 	gnc::fcc_loader_t loader(pln);
-	log << loader << '\n';
+	log << '\n' << loader << '\n';
 
 	gnc::fcc_t FCC;
 	loader.setup(FCC);
@@ -100,7 +125,7 @@ bool dgnc::fsim::exec_t::operator()(bool do_plot)
 	double ts = loader.sample_time();
 
 	solver_t slv;
-	rocket_t rckt(mdl, wind, ts, log);
+	rocket_t rckt(mdl_s1, mdl_s2, wind, ts, log);
 	rckt.init(toff, loader.launch_state(), sep_rot);
 
 	//--------------------------------------------------------------------------
@@ -142,7 +167,7 @@ bool dgnc::fsim::exec_t::operator()(bool do_plot)
 			{
 				// reportar cambios de estado
 				st = FCC.state_trace();
-				on_state(st, sim_rec.back(), log);
+				on_state(rckt.T, st, sim_rec.back(), log);
 			}
 
 		rckt.cmnds(t, FCC.AOs(), FCC.DOs()); // propagar los comandos

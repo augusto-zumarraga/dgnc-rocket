@@ -6,7 +6,7 @@
 /// \brief
 /// \author   Augusto Zumarraga
 /// \date     creación: 10/06/2024
-/// \date     revisión: 03/07/2024
+/// \date     revisión: 05/10/2024
 //______________________________________________________________________________
 
 /*
@@ -62,8 +62,9 @@ struct rocket_t
 	bool     eng;
 	rocket_mdl_t::vect_t xo;
 	navs::angle_rate_t sep_rot;
+	second_t T;
 
-	rocket_t(const std::string& mdl, const std::string& wind, double _ts, logger_t& l);
+	rocket_t(const std::string& mdl_s1, const std::string& mdl_s2, const std::string& wind, double _ts, logger_t& l);
 	rocket_mdl_t* operator->() { return  p_stage; }
 	rocket_mdl_t& operator* () { return *p_stage; }
 	operator rocket_mdl_t&  () { return *p_stage; }
@@ -86,12 +87,12 @@ public:
 protected:
 
 	bool fts     (const sim_info_t& s, logger_t&);
-	void on_state(int st, const sim_info_t& p, logger_t&);
+	void on_state(second_t T, int st, const sim_info_t& p, logger_t&);
 	void update  (const sim_info_t& sim, ins_data_t& ins);
 	void dump    (const std::string&, const solver_t::result_t& r);
 
 	double tsim, toff, tlaunch, tint, w_max;
-	std::string  mdl, pln, exp, wind;
+	std::string  mdl_s1, mdl_s2, pln, exp, wind;
 	navs::angle_rate_t sep_rot;
 };
 

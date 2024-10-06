@@ -14,8 +14,7 @@ function [f, param] = import_flight(froot, fpath, fmat)
 
     disp(sprintf('importing %s...', fname))
 
-    d2r = pi/180;
-    
+   
 	% nav_state_t
     k = 1;
     f.tk  = S(:,k    ); k = k + 1; 
@@ -35,32 +34,35 @@ function [f, param] = import_flight(froot, fpath, fmat)
 
     k = 1;
     f.nav.t     = N(:,k);     k = k + 1; 
-    f.nav.h     = N(:,k)*1e3; k = k + 1; 
-    f.nav.r     = N(:,k)*1e3; k = k + 1; 
+    f.nav.h     = N(:,k);     k = k + 1; % km
+    f.nav.r     = N(:,k);     k = k + 1; % km 
     f.nav.v     = N(:,k);     k = k + 1; 
-    f.nav.gamma = N(:,k)*d2r; k = k + 1; 
-    f.nav.beta  = N(:,k)*d2r; k = k + 1; 
+    f.nav.gamma = N(:,k);     k = k + 1; 
+    f.nav.beta  = N(:,k);     k = k + 1; 
     f.nav.lat   = N(:,k);     k = k + 1; 
     f.nav.lng   = N(:,k);     k = k + 1; 
     f.nav.pos   = N(:,k:k+2);
         
 
     k = 1;
-    f.dyn.t    = D(:,k);         k = k + 1; 
-   	f.nav.eul  = D(:,k:k+2)*d2r; k = k + 3; 
-    f.dyn.dy   = D(:,k);         k = k + 1; 
-    f.dyn.dz   = D(:,k);         k = k + 1; 
-    f.dyn.da   = D(:,k);         k = k + 1;
-    f.dyn.rc   = D(:,k);         k = k + 1;
+    f.dyn.t    = D(:,k);      k = k + 1; 
+   	f.nav.eul  = D(:,k:k+2);  k = k + 3; 
+    f.dyn.dy   = D(:,k);      k = k + 1; 
+    f.dyn.dz   = D(:,k);      k = k + 1; 
+    f.dyn.da   = D(:,k);      k = k + 1;
+    f.dyn.rc   = D(:,k);      k = k + 1;
     
     f.aer.Q     = D(:,k);     k = k + 1; 
     f.aer.M     = D(:,k);     k = k + 1; 
-    f.aer.alpha = D(:,k)*d2r; k = k + 1; 
-    f.aer.beta  = D(:,k)*d2r; k = k + 1; 
+    f.aer.alpha = D(:,k);     k = k + 1; 
+    f.aer.beta  = D(:,k);     k = k + 1; 
     
     f.frc.fb   = D(:,k:k+2); k = k + 3; 
     f.frc.T    = D(:,k);     %k = k + 1; 
     %f.dyn.mass = D(:,k); k = k + 1; 
+
+    T = f.frc.T > 0;
+    f.frc.on_off = find(T(2:end) - T(1:end-1));
 
     k = 1;
     f.gnc.t      = G(:,k    ); k = k + 1; 
@@ -68,6 +70,7 @@ function [f, param] = import_flight(froot, fpath, fmat)
    	f.gnc.x_dir  = G(:,k:k+2); k = k + 3; % dirección del eje x ECI
    	f.gnc.e_dir  = G(:,k:k+2); k = k + 3; % desviación (body)
     f.gnc.e_nrm  = G(:,k)    ; k = k + 1; % norma de la desviación r_dir * x_dir [⁰]
+   	f.gnc.q_ref  = G(:,k:k+3); k = k + 4; % quternión de referencia (primera etapa) 
    	f.gnc.q_err  = G(:,k:k+3); k = k + 4; % quternión de error de actitud (primera etapa) 
    	f.gnc.w_err  = G(:,k:k+2); k = k + 3; % error de velocidad angular
     f.gnc.g_st   = G(:,k    ); k = k + 1; % estado del PGUID 

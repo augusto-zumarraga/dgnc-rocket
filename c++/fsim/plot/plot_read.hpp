@@ -6,7 +6,7 @@
 /// \brief
 /// \author   Augusto Zumarraga
 /// \date     creación: 10/06/2024
-/// \date     revisión: 05/09/2024
+/// \date     revisión: 02/10/2024
 //______________________________________________________________________________
 
 /*
@@ -39,7 +39,7 @@ using namespace dgnc;
 using namespace fsim;
 
 //------------------------------------------------------------------------------
-inline double get_xe(const rocket_mdl_t::vect_t& x) { return (x.pos.x() - wgs84::Re) * 1e-3; }
+inline double get_xe(const rocket_mdl_t::vect_t& x) { return  x.pos.x() * 1e-3; }
 inline double get_ye(const rocket_mdl_t::vect_t& x) { return  x.pos.y() * 1e-3; }
 inline double get_ze(const rocket_mdl_t::vect_t& x) { return  x.pos.z() * 1e-3; }
 
@@ -80,7 +80,7 @@ inline double get_gamma(const nav_data_t& N){ return degree(N.vel.elv); }
 //------------------------------------------------------------------------------
 struct dyn_t
 {
-	geom::euler eul;
+	geom::euler          eul;
     actuators_t::state_t act;
 
 	void set_eul(const ecef::state_t& x)
@@ -123,9 +123,9 @@ inline double get_slp  (const sim_info_t& x){ return degree(x.env.wnd.slp); }
 inline double get_fx   (const sim_info_t& x){ return x.env.fb .x( ); }
 inline double get_fy   (const sim_info_t& x){ return x.env.fb .y( ); }
 inline double get_fz   (const sim_info_t& x){ return x.env.fb .z( ); }
-inline double get_wx   (const sim_info_t& x){ return x.env.wbi.x( ); }
-inline double get_wy   (const sim_info_t& x){ return x.env.wbi.y( ); }
-inline double get_wz   (const sim_info_t& x){ return x.env.wbi.z( ); }
+inline double get_wx   (const sim_info_t& x){ return math::r2d(x.env.wbi.x()); }
+inline double get_wy   (const sim_info_t& x){ return math::r2d(x.env.wbi.y()); }
+inline double get_wz   (const sim_info_t& x){ return math::r2d(x.env.wbi.z()); }
 inline double get_T    (const sim_info_t& x){ return x.env.T.norm() / wgs84::go; }
 inline double get_mass (const sim_info_t& x){ return x.env.mass.m; }
 inline double get_rcs  (const sim_info_t& x){ return x.env.rcs; }
@@ -135,16 +135,16 @@ using geom::scalar;
 //------------------------------------------------------------------------------
 struct gnc_t
 {
-	ned::att_t      att;
-	ecef::att_t     qec;
-	eci::state_t    nav;
-	fcc_t::tlmy_t   tmy;
-	angle_rate_t    wbi;
+	ned::att_t       att;
+	ecef::att_t      qec;
+	eci::state_t     nav;
+	fcc_t::tlmy_t    tmy;
+	angle_rate_t     wbi;
 
 	geom::direction  dir;
 	geom::quaternion qerr;
-	scalar eD;
-	angle_rate_t ew;
+	geom::radian     eD;
+	angle_rate_t     ew;
 
 	gnc_t() // @suppress("Class members should be properly initialized")
 	{}
@@ -182,6 +182,11 @@ inline const fcc_t::tlmy_t& get_tmy(const fcc_t::tlmy_t& x)
 
 //------------------------------------------------------------------------------
 // error en componentes del cuaternion
+inline double get_qn(const gnc_t& x){ return x.tmy.q_ref.r(); }
+inline double get_qx(const gnc_t& x){ return x.tmy.q_ref.x(); }
+inline double get_qy(const gnc_t& x){ return x.tmy.q_ref.y(); }
+inline double get_qz(const gnc_t& x){ return x.tmy.q_ref.z(); }
+// error en componentes del cuaternion
 inline double get_en(const gnc_t& x){ return x.qerr.r(); }
 inline double get_ex(const gnc_t& x){ return x.qerr.x(); }
 inline double get_ey(const gnc_t& x){ return x.qerr.y(); }
@@ -191,13 +196,13 @@ inline double get_e_roll (const gnc_t& x){ return degree(x.qerr.roll ()); }
 inline double get_e_pitch(const gnc_t& x){ return degree(x.qerr.pitch()); }
 inline double get_e_yaw  (const gnc_t& x){ return degree(x.qerr.yaw  ()); }
 // error en velocidades angulares
-inline double get_ep(const gnc_t& x){ return degree(x.ew.x()); }
-inline double get_eq(const gnc_t& x){ return degree(x.ew.y()); }
-inline double get_er(const gnc_t& x){ return degree(x.ew.z()); }
+inline double get_ep(const gnc_t& x){ return math::r2d(x.ew.x()); }
+inline double get_eq(const gnc_t& x){ return math::r2d(x.ew.y()); }
+inline double get_er(const gnc_t& x){ return math::r2d(x.ew.z()); }
 
 //------------------------------------------------------------------------------
 // error en la dirección
-inline double get_eD(const gnc_t& x){ return math::r2d(x.eD); }
+inline double get_eD(const gnc_t& x){ return degree(x.eD); }
 // referencia para el apuntamiento ECI
 inline double get_Rx(const gnc_t& x){ return x.tmy.gdn.pref.x(); }
 inline double get_Ry(const gnc_t& x){ return x.tmy.gdn.pref.y(); }

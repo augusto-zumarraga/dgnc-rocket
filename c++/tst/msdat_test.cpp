@@ -116,13 +116,13 @@ void read_back(const char* src)
 bool msdat_test()
 {
 	{
-	const char src[] = "/home/augusto/trabajos/DGNC/DATCOM/N3/S1";
+	const char src[] = "/home/augusto/trabajos/DGNC/dev/rocket/mdat/N3/S1";
 	const char dst[] = "S1.dat";
 	import_and_save(src, dst);
 	read_back(dst);
 	}
 	{
-	const char src[] = "/home/augusto/trabajos/DGNC/DATCOM/N3/S2";
+	const char src[] = "/home/augusto/trabajos/DGNC/dev/rocket/mdat/N3/S2";
 	const char dst[] = "S2.dat";
 	import_and_save(src, dst);
 	}

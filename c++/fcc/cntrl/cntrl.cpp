@@ -176,7 +176,8 @@ void atm_t::start(second_t elps)
 {
 	m_tvc.gains.set_offset(elps);
 	m_fin.gains.set_offset(elps);
-	py_gains.set_offset(elps);
+	   py_gains.set_offset(elps);
+	    r_gains.set_offset(elps);
 	reset();
 }
 void atm_t::reset()
@@ -211,7 +212,8 @@ void exo_t::start(second_t elps)
 {
 	m_tvc.gains.set_offset(elps);
 	m_rcs.gains.set_offset(elps);
-	py_gains.set_offset(elps);
+	   py_gains.set_offset(elps);
+	    r_gains.set_offset(elps);
 	reset();
 }
 void exo_t::reset()

@@ -19,6 +19,13 @@ unsigned time_stamp = 0;
 }
 
 #ifdef MEX_FILE_CHECK
+
+namespace gnc {
+void trace(const char* msg)
+{
+	std::cout << msg << std::endl;
+}
+}
 namespace {
 
 	typedef int int_T;
@@ -79,7 +86,12 @@ namespace {
 #else
 	#include "simstruc.h"
 
-    namespace dgnc {
+    namespace gnc {
+
+    void trace(const char* msg)
+    {
+    	ssPrintf("%04d: [MEX] %s\n", time_stamp, msg);
+    }
 
     void debug_print(int dbg_lvl, const char *fmt, ...)
     {
@@ -122,8 +134,6 @@ namespace {
 	#define _TRACE(x)
 #endif
 #define _ERROR(S, x) ssPrintf("%04d: [ERROR] %s\n", time_stamp, x); ssSetErrorStatus(S, x);
-
-using namespace gnc;
 
 namespace {
 
@@ -194,15 +204,17 @@ static void mdlInitializeSizes(SimStruct *S)
     if(!ssSetNumInputPorts(S, 1))
 		return;
     ssSetInputPortDataType         (S, 0, DYNAMICALLY_TYPED);
-    ssSetInputPortVectorDimension  (S, 0, fcc_dbg_t::sns_len);
+    ssSetInputPortVectorDimension  (S, 0, gnc::fcc_dbg_t::sns_len);
     ssSetInputPortDirectFeedThrough(S, 0, 1);
     
 	//---------------------------------------------------------------
 	// Salidas:
 	//---------------------------------------------------------------
-    if(!ssSetNumOutputPorts(S, 1))
+    if(!ssSetNumOutputPorts(S, 3))
 		return;
-    ssSetOutputPortVectorDimension(S, 0, fcc_dbg_t::out_len);
+    ssSetOutputPortVectorDimension(S, 0, gnc::fcc_dbg_t::aos_len);
+    ssSetOutputPortVectorDimension(S, 1, gnc::fcc_dbg_t::dos_len);
+    ssSetOutputPortVectorDimension(S, 2, gnc::fcc_dbg_t::out_len);
     
 	//---------------------------------------------------------------
 	// Auxiliares:
@@ -261,7 +273,7 @@ static void mdlStart(SimStruct *S)
 {
 	_TRACE("mdlStart");
     // Store new C++ object in the pointers vector
-    ssGetPWork(S)[0] = new fcc_dbg_t();
+    ssGetPWork(S)[0] = new gnc::fcc_dbg_t();
 	mdlProcessParameters(S);
 }
 
@@ -301,16 +313,15 @@ static void mdlCheckParameters(SimStruct *S)
 {   
 	_TRACE("mdlCheckParameters");
 
-	if(get_length(ssGetSFcnParam(S, 0)) != fcc_dbg_t::prm_len)
+	if(get_length(ssGetSFcnParam(S, 0)) != gnc::fcc_dbg_t::prm_len)
     {
         //_TRACE("n_dim:%s, dim(1):%s, dim(2):%s", n_dim, *p_dim, *(p_dim+1));
-        ssSetErrorStatus(S, "Parameter 1 'params' data must be a vector with 14 elements "
-							"\nstage"
-        		            "\norbit   { hgt, inc, raan }"
-							"\ntimes   { sample, s1_burn, s2_burn }"
-							"\ndelays  { sep, burn }"
-							"\nheights { relief, steer, void }"
-							"\nlts     { a, b }");
+        ssSetErrorStatus(S, "Parameter 1 'params' data must be a vector with 17 elements "
+							"\nstage, R_orbit"
+							"\ntimes   { sample, s1_burn, s2_burn, meco_duration }"
+							"\ndelays  { separation, burn }"
+							"\nheights { relief, void, separation, steer }"
+							"\npguid   { V_exit, pre-cycle, tgo_min, v_eps, f_min }");
 		return;
 	}
 	if(get_cols(ssGetSFcnParam(S, 1)) != 4)
@@ -318,11 +329,16 @@ static void mdlCheckParameters(SimStruct *S)
         ssSetErrorStatus(S, "Parameter 2 'gains' data must be an array with 4 columns");
         return;
 	}
-	if(get_cols(ssGetSFcnParam(S, 2)) != 1)
+	if(get_cols(ssGetSFcnParam(S, 2)) != 2)
     {
-        ssSetErrorStatus(S, "Parameter 3 'wire' data must be an array with 4 columns (quaternion components)");
+        ssSetErrorStatus(S, "Parameter 3 'wire' data must be an array with 2 columns [pitch , heading]");
         return;
 	}
+	if(get_length(ssGetSFcnParam(S, 3)) != 3 && get_length(ssGetSFcnParam(S, 3)) != 0)
+    {
+        ssSetErrorStatus(S, "Parameter 4 'initial state' must have 3 elements [state , t_launch, t_separation]");
+        return;
+    }
 	_TRACE("mdlCheckParameters OK");    
 }
 #endif
@@ -350,7 +366,7 @@ static void mdlProcessParameters(SimStruct *S)
 	_TRACE("mdlProcessParameters");
 	try
 	{
-		fcc_dbg_t* p_dbg = static_cast<fcc_dbg_t*>(ssGetPWork(S)[0]);
+		gnc::fcc_dbg_t* p_dbg = static_cast<gnc::fcc_dbg_t*>(ssGetPWork(S)[0]);
 		if(!p_dbg)
 		{
 			_TRACE("PWork is null");
@@ -395,8 +411,8 @@ static void mdlProcessParameters(SimStruct *S)
 		if(p_param)
 		{
 			p_data  = mxGetPr(p_param);
-			if(p_data)
-				p_dbg->initial_state(*p_data);
+			if(p_data && get_length(p_param) >= 3)
+				p_dbg->initial_state(*p_data, *(p_data+1), *(p_data+2));
 		}
 		_TRACE("mdlProcessParameters Done");
 	}
@@ -417,7 +433,7 @@ static void mdlProcessParameters(SimStruct *S)
 
 inline dgnc::geom::scalar pop_scalar(InputRealPtrsType& i)
 {
-	scalar x = **(i); ++i;
+	dgnc::geom::scalar x = **(i); ++i;
 	return x;
 }
 inline dgnc::geom::vector pop_vector(InputRealPtrsType& i)
@@ -433,6 +449,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 {
     try
     {
+    	using namespace gnc;
     	++time_stamp;
         UNUSED_ARG(tid);
         fcc_dbg_t*  p_dbg = static_cast<fcc_dbg_t*>(ssGetPWork(S)[0]);
@@ -444,7 +461,7 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
         if(ins_len >= fcc_dbg_t::sns_len)
         {
-        	using namespace dgnc::geom;
+        	//using namespace dgnc::geom;
 			o_ins.elapsed = pop_scalar(i_ins);
 			o_ins.pos     = pop_vector(i_ins);
 			o_ins.vel     = pop_vector(i_ins);
@@ -459,17 +476,25 @@ static void mdlOutputs(SimStruct *S, int_T tid)
 
             p_dbg->on_time_step();
 
-            real_T* o_ptr = ssGetOutputPortRealSignal(S, 0);
-            if(ssGetOutputPortWidth(S,0) >= fcc_dbg_t::out_len)
+            real_T*
+            o_ptr = ssGetOutputPortRealSignal(S, 0);
+            if(ssGetOutputPortWidth(S,0) >= fcc_dbg_t::aos_len)
             {
-                *(  o_ptr) = o_fcc.commands().dy;
-                *(++o_ptr) = o_fcc.commands().dz;
-                *(++o_ptr) = o_fcc.commands().da;
-                *(++o_ptr) = o_fcc.commands().eng;
-                *(++o_ptr) = o_fcc.commands().rel;
-                *(++o_ptr) = o_fcc.commands().sep;
-                *(++o_ptr) = o_fcc.state();
+                *(  o_ptr) = o_fcc.AOs().dy;
+                *(++o_ptr) = o_fcc.AOs().dz;
+                *(++o_ptr) = o_fcc.AOs().da;
+                *(++o_ptr) = o_fcc.AOs().rc;
             }
+            o_ptr = ssGetOutputPortRealSignal(S, 1);
+            if(ssGetOutputPortWidth(S,0) >= fcc_dbg_t::dos_len)
+            {
+                *(  o_ptr) = o_fcc.DOs().eng;
+                *(++o_ptr) = o_fcc.DOs().rel;
+                *(++o_ptr) = o_fcc.DOs().sep;
+            }
+            o_ptr = ssGetOutputPortRealSignal(S, 2);
+            if(ssGetOutputPortWidth(S,0) >= fcc_dbg_t::out_len)
+                p_dbg->write_tlmy(o_ptr);
         }
         else
         {
@@ -495,7 +520,7 @@ static void mdlTerminate(SimStruct *S)
         void **pw = ssGetPWork(S);
         if(!pw)
             return;
-        fcc_dbg_t *p = static_cast<fcc_dbg_t*>(*pw);
+        gnc::fcc_dbg_t *p = static_cast<gnc::fcc_dbg_t*>(*pw);
         ssGetPWork(S)[0] = 0;
         if(p != NULL)
             delete p;

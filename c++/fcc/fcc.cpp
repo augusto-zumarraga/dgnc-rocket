@@ -133,8 +133,9 @@ void fcc_t::ascent_on_entry(const ins_data_t& s)
 }
 void fcc_t::ascent_on_timer(const ins_data_t& s)
 {
+	m_tlmy.q_ref = m_plan.wire(s.elapsed);
 	att_t qwr = ecef_to_ned(s.pos, s.att);
-	m_cntrl_s1.att_loop(m_plan.wire(s.elapsed), qwr, s);
+	m_cntrl_s1.att_loop(m_tlmy.q_ref, qwr, s);
 	if(m_plan.do_relief(s.lla.alt))
 		set_state(state_load_relief, s);
 }
@@ -142,7 +143,8 @@ void fcc_t::ascent_on_timer(const ins_data_t& s)
 //------------------------------------------------------------------------------
 void fcc_t::load_relief_on_timer(const ins_data_t& s)
 {
-	m_cntrl_s1.load_relief(m_plan.wire(s.elapsed), s);
+	m_tlmy.q_ref = m_plan.wire(s.elapsed);
+	m_cntrl_s1.load_relief(m_tlmy.q_ref, s);
     if(m_plan.start_meco_maneuver(s.elapsed))
 		set_state(state_meco, s);
 }
@@ -169,11 +171,15 @@ void fcc_t::meco_on_exit(const ins_data_t& s)
 void fcc_t::coasting_on_entry(const ins_data_t& s)
 {
 	m_alarm.set(s.elapsed + m_plan.s1_coast_time());
+	//m_cntrl_s1.stop_rotation();
 }
 void fcc_t::coasting_on_timer(const ins_data_t& s)
 {
 	m_cntrl_s1.roll_loop(s);
-    if(m_alarm(s.elapsed) || m_plan.do_separation(s.lla.alt))
+//	m_cntrl_s2.start(s.elapsed);
+//	m_cntrl_s2.roll_loop(s);
+//	m_cntrl_s1.cmnd().rc = m_cntrl_s2.cmnd().rc;
+	if(m_alarm(s.elapsed) || m_plan.do_separation(s.lla.alt))
 		set_state(state_separation, s);
 }
 
@@ -193,6 +199,7 @@ void fcc_t::separation_on_timer(const ins_data_t& s)
 //------------------------------------------------------------------------------
 void fcc_t::fire_s2_on_entry(const ins_data_t& s)
 {
+	m_tlmy.q_ref.reset();
 	m_cntrl_s2.start(s.elapsed);
 	m_alarm.set(s.elapsed + m_plan.s2_fire_delay());
 }

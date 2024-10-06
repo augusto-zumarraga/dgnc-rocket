@@ -19,7 +19,11 @@ end
 if nargin < 6
     nplot = 0;
 end
+% https://www.argentina.gob.ar/ciencia/conae/centros-y-estaciones/estacion-terrena-cordoba/ubicacion
+CETT = [-31.524075, -64.463522, 730];
 
+
+go  = 9.80665;
 nav = flight.nav;
 aer = flight.aer;
 frc = flight.frc;
@@ -28,23 +32,44 @@ rng = find(flight.t < 500);
 rng = 1:rng(end);
 t = flight.t(rng);
 
+
+% posicion ECEF de la antena
+p_cett = lla2ecef(CETT)*1e-3;
+% vertical geocentrica del lugar
+v_cett = p_cett/sqrt(sum(p_cett.*p_cett)); 
+% posicion relativa de la antena
+d_cett = [nav.pos(:,1)-p_cett(1), nav.pos(:,2)-p_cett(2) , nav.pos(:,3)-p_cett(3)];
+% distancia a la antena
+r_cett = sqrt( d_cett(:,1).*d_cett(:,1) ...
+             + d_cett(:,2).*d_cett(:,2) ...
+             + d_cett(:,3).*d_cett(:,3));
+% elevacion de la antena
+sn = sind(1); 
+% altura sobre el umbar de deteccion
+h_cett = d_cett(:,1)*v_cett(1) ...
+       + d_cett(:,2)*v_cett(2) ...
+       + d_cett(:,3)*v_cett(3) - r_cett * sn;
+
+
 %% ------------------------------------------------------------------------
 %                                                                       NAV
 if ~nplot
     subplot(4,3,1); 
 end
 if ~nplot || nplot == 1
-    plot(flight.t, nav.h*0.001, 'LineWidth', line_width, 'Color', clr); 
+    plot(flight.t, nav.h, 'LineWidth', line_width, 'Color', clr); 
     hold on;
+    plot(flight.t, h_cett, ':k'); 
     grid on;
-    ylabel('h_{orb} [km]');
+    ylabel('h [km]');
+    legend('h_{orb}', 'h_{cett}');
 end
 
 if ~nplot
     subplot(4,3,4); 
 end
 if ~nplot || nplot == 4
-    plot(flight.t, nav.r*0.001, 'LineWidth', line_width, 'Color', clr); 
+    plot(flight.t, nav.r, 'LineWidth', line_width, 'Color', clr); 
     hold on;
     grid on;
     ylabel('r [km]');
@@ -73,15 +98,15 @@ if ~nplot || nplot == 10
         y = nav.gamma(rng);
         k = find(nav.v(rng) > 0,1); 
         y(1:k) = p(1:k);
-        plot(t, y*180/pi, 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'γ');
+        plot(t, y, 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'γ');
         hold on;
     end
-    plot(t, p*180/pi, '--', 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'θ'); 
+    plot(t, p, '--', 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'θ'); 
     grid on;
     % if ~isempty(param) && isfield(param, 'q_ref')
     %     eul = quaternion.to_euler(param.q_ref);
     %     t   = (0:length(eul)-1)*param.ts;
-    %     plot(t, eul(:,2)*180/pi);
+    %     plot(t, eul(:,2));
     %     xlim([0 max(flight.t)]);
     % end
     ylabel('[⁰]');
@@ -119,7 +144,7 @@ if ~nplot || nplot == 5
     ylabel('Q [Pa]');
     
     yyaxis right
-    plot(t, aer.Q(rng).*a*180/pi, '-.', 'LineWidth', line_width, 'Color', clr); 
+    plot(t, aer.Q(rng).*a, '-.', 'LineWidth', line_width, 'Color', clr); 
     hold on;
     grid on;
     ylabel('Q.α [Pa.⁰]');
@@ -130,17 +155,17 @@ if ~nplot
     subplot(4,3,8);
 end
 if ~nplot || nplot == 8
-    plot(t, a*180/pi, 'LineWidth', line_width, 'Color', clr, 'DisplayName', lbl); 
+    plot(t, a, 'LineWidth', line_width, 'Color', clr, 'DisplayName', lbl); 
     hold on;
     grid on;
     if isfield(aer, 'beta')
-        plot(t, aer.beta(rng)*180/pi, '--', 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'β_a'); 
+        plot(t, aer.beta(rng), '--', 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'β_a'); 
     end
     if isfield(nav, 'alpha')
-        plot(t, nav.alpha(rng)*180/pi, '-.', 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'α_T'); 
+        plot(t, nav.alpha(rng), '-.', 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'α_T'); 
     end
     if isfield(nav, 'beta')
-        plot(t, nav.beta(rng)*180/pi, ':', 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'β_T'); 
+        plot(t, nav.beta(rng), ':', 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'β_T'); 
     end
     ylabel('[⁰]');
     legend('show','AutoUpdate','off');
@@ -150,11 +175,11 @@ if ~nplot
     subplot(4,3,11); 
 end
 if ~nplot || nplot == 11
-    plot(t, frc.T(rng)/9.81, 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'thrust'); 
+    plot(t, frc.T(rng)/go, 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'thrust'); 
     hold on;
     if isfield(nav, 'Fa')
-    plot(t, aer.Fa(rng,1)/9.81, '--', 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'aero axial'); 
-    plot(t, aer.Fa(rng,2)/9.81, '-.', 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'aero normal'); 
+    plot(t, aer.Fa(rng,1)/go, '--', 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'aero axial'); 
+    plot(t, aer.Fa(rng,2)/go, '-.', 'LineWidth', line_width, 'Color', clr, 'DisplayName', 'aero normal'); 
     end
     grid on;
     ylabel('F [kgf]');
@@ -172,10 +197,10 @@ if ~nplot || nplot == 3
         r = nav.eul(rng,1); 
         p = nav.eul(rng,2); 
         y = nav.eul(rng,3); 
-        plot(t, r*180/pi, 'LineWidth', line_width, 'DisplayName', 'ϕ'); 
+        plot(t, r, 'LineWidth', line_width, 'DisplayName', 'ϕ'); 
         hold on
-        plot(t, p*180/pi, 'LineWidth', line_width, 'DisplayName', 'θ'); 
-        plot(t, y*180/pi, 'LineWidth', line_width, 'DisplayName', 'ψ'); 
+        plot(t, p, 'LineWidth', line_width, 'DisplayName', 'θ'); 
+        plot(t, y, 'LineWidth', line_width, 'DisplayName', 'ψ'); 
         grid on;
     
         ylabel('[⁰]');

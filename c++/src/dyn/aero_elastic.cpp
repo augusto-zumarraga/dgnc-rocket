@@ -57,8 +57,8 @@ struct_t::state_t struct_t::integrate(state_t x, scalar m, const velocity_t& v, 
 	x.yy = prm[6];
 	x.uy = bv*v.y() + bw*w.z() + bf*f.y();
 	x.uz = bv*v.z() - bw*w.y() + bf*f.z();
-	x.uy = bf*f.y();
-	x.uz = bf*f.z();
+//	x.uy = bf*f.y();
+//	x.uz = bf*f.z();
 
 	model_t mdl(x.wn, x.xi, h);
 	x.y_state = mdl.integral(x.y_state, x.uy);

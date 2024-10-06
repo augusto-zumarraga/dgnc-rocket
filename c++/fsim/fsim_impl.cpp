@@ -104,10 +104,13 @@ bool fsim::exec_t::fts(const sim_info_t& s, logger_t& log)
 }
 
 //------------------------------------------------------------------------------
-void fsim::exec_t::on_state(int st, const sim_info_t& p, logger_t& log)
+void fsim::exec_t::on_state(second_t T, int st, const sim_info_t& p, logger_t& log)
 {
-	log << "\n\n============================================================\n"
-			  << p.ins.elapsed << "s: STATE ";
+	log << "\n\n============================================================\n";
+	if(T < second_t(0))
+		log << p.ins.elapsed << "s: STATE ";
+	else
+		log << "T+" << p.ins.elapsed - T << "s: STATE ";
 	switch(st)
 	{
 	case fcc_t::st_init        : log << "init        "; break;

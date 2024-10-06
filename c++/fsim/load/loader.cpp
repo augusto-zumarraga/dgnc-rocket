@@ -426,6 +426,19 @@ void fcc_loader_t::setup(gnc::fcc_t& f) const
 	f.ctrl_s2(). r_gains.fill(m_gains[1].roll.f.begin(), m_gains[1].roll.f.size(), m_times.sampling);
 }
 
+std::ostream& operator<<(std::ostream& s, const gnc::ctrl::st_params_t& p)
+{
+	s <<   "k2: " << p.k2
+	  << ", l1: " << p.l1
+	  << ", l2: " << p.l2
+	  << ", rl: " << p.rl;
+	return s;
+}
+std::ostream& operator<<(std::ostream& s, const gnc::fcc_loader_t::pd_gains_t& g)
+{
+	s << "f: " << g.f << ", g: " << g.g;
+	return s;
+}
 void fcc_loader_t::print(std::ostream& s) const
 {
 	using ::operator<<;
@@ -446,7 +459,12 @@ void fcc_loader_t::print(std::ostream& s) const
 	  << "\nVe: "                << m_params.exit_speed
 	  << " m/s, t_burn: "        << m_times.s2_burn
 	  << " s, t_pre-cycle: "     << m_params.pre_cycle
-	  << " s, ts: "              << m_times.sampling << " s";
+	  << " s, ts: "              << m_times.sampling << " s"
+	  << "\n\nGaing stage 1"     << "\n pitch | " << m_f_gains[0].ptch << ", " << m_s1_ptch
+	                             << "\n roll  | " << m_f_gains[0].roll << ", " << m_s1_roll
+	  <<   "\nGaing stage 2"     << "\n pitch | " << m_f_gains[1].ptch << ", " << m_s1_ptch
+	                             << "\n roll  | " << m_f_gains[1].roll << ", " << m_s1_roll
+	  ;
 }
 
 

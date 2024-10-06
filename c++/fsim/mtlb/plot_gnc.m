@@ -16,7 +16,7 @@ if nargin < 4 || isempty(rng)
     rng = find(flight.frc > 0, 1, 'first'):find(flight.frc > 0, 1, 'last');    
 end
 t = gnc.t(rng);
-
+m2k = 1e-3;
 clf
 subplot(3,2,1); 
 plot(t, gnc.r_dir(rng,:), 'LineWidth', line_width); %, 'Color', clr); 
@@ -45,12 +45,12 @@ grid on;
 ylabel('Time To Go');
 
 subplot(3,2,4); 
-plot(t, gnc.rtgo(rng)*1e-3, 'LineWidth', line_width); 
+plot(t, gnc.rtgo(rng)*m2k, 'LineWidth', line_width); 
 grid on;
 ylabel('Range To Go [km]');
 
 subplot(3,2,6); 
-plot(t, gnc.rbis(rng)*1e-3, 'LineWidth', line_width); 
+plot(t, gnc.rbis(rng)*m2k, 'LineWidth', line_width); 
 grid on;
 ylabel('Rbias [km]');
 

@@ -31,32 +31,9 @@ constexpr auto beta = 1;
 typedef std::runtime_error check_failure;
 }
 
-fcc_dbg_t::fcc_dbg_t()
-: m_stage       (0)
-, m_ini_st      (fcc_t::st_init)
-, m_t_launch    (0)
-, m_t_separation(0)
-{}
-
-void fcc_dbg_t::initial_state(int st, second_t t_launch, second_t t_sep)
-{
-	if(st >= fcc_t::st_init && st <= fcc_t::st_orbit)
-	{
-		m_ini_st = st;
-	    m_t_launch = t_launch;
-	    m_t_separation = t_sep;
-	}
-}
-
-
 //------------------------------------------------------------------------------
-void fcc_dbg_t::fill_params(const double* p, unsigned len)
+void fcc_loader_t::fill_params(const double* p, unsigned len)
 {
-	m_stage = *p; ++p;
-	if(m_stage < 0 || m_stage > 2)
-		throw check_failure("Invalid stage index");
-	--m_stage;
-
 	fcc.plan().R_orbit                = *p; ++p;
 	fcc.plan().times.sampling         = *p; ++p;
 	fcc.plan().times.s1_burn          = *p; ++p;
@@ -144,7 +121,7 @@ struct gain_schedule_t
 };
 
 }
-void fcc_dbg_t::fill_gains(const double* p, unsigned n)
+void fcc_loader_t::fill_gains(const double* p, unsigned n)
 {
 	ctrl::st_params_t prm = { 0, 0, 0, 0.5 };
 	gain_schedule_t gains;
@@ -190,8 +167,7 @@ void fcc_dbg_t::fill_gains(const double* p, unsigned n)
 	}
 }
 
-//------------------------------------------------------------------------------
-void fcc_dbg_t::fill_wire(const double* p, unsigned n)
+void fcc_loader_t::fill_wire(const double* p, unsigned n)
 {
 	std::vector<gnc::att_t> wire;
 	wire.resize(0);
@@ -213,6 +189,45 @@ void fcc_dbg_t::fill_wire(const double* p, unsigned n)
 	fcc.plan().wire.fill(&wire.front(), wire.size(), fcc.plan().times.sampling);
 }
 
+//------------------------------------------------------------------------------
+fcc_dbg_t::fcc_dbg_t()
+: m_ini_st      (fcc_t::st_init)
+, m_t_launch    (0)
+, m_t_separation(0)
+{}
+void fcc_dbg_t::initial_state(int st, second_t t_launch, second_t t_sep)
+{
+	if(st >= fcc_t::st_init && st <= fcc_t::st_orbit)
+	{
+		m_ini_st = st;
+	    m_t_launch = t_launch;
+	    m_t_separation = t_sep;
+	}
+}
+void fcc_dbg_t::write_tlmy(double* p)
+{
+    fcc.update_tlmy();
+    const fcc_t::tlmy_t& tmy = fcc.tlmy();
+
+    *(  p) = tmy.state;
+    *(++p) = tmy.q_ref.r();
+    *(++p) = tmy.q_ref.x();
+    *(++p) = tmy.q_ref.y();
+    *(++p) = tmy.q_ref.z();
+    *(++p) = tmy.e_dir.x();
+    *(++p) = tmy.e_dir.y();
+    *(++p) = tmy.e_dir.z();
+    *(++p) = tmy.ctl.w_ref.x();
+    *(++p) = tmy.ctl.w_ref.y();
+    *(++p) = tmy.ctl.w_ref.z();
+    *(++p) = tmy.gdn.state;
+    *(++p) = tmy.gdn.ttgo;
+    *(++p) = tmy.gdn.rtgo;
+    *(++p) = tmy.gdn.rbis;
+    *(++p) = tmy.gdn.pref.x();
+    *(++p) = tmy.gdn.pref.y();
+    *(++p) = tmy.gdn.pref.z();
+}
 
 
 

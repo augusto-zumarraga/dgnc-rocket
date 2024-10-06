@@ -1,0 +1,229 @@
+\documentclass[rocket.tex]{subfiles}
+
+\begin{document}
+
+\subsection{Estructura}
+
+\subsubsection{Integración Numérica}
+
+\paragraph{1DOF}
+
+\begin{equation*}
+	\begin{bmatrix} \dot{x}_1 \\ \dot{x}_2 \end{bmatrix}
+	=
+	\begin{bmatrix} 0 & 1 \\ -a_1 & -a_2 \end{bmatrix}
+	\begin{bmatrix} x_1 \\ x_2 \end{bmatrix}
+	+
+	\begin{bmatrix} 0 \\ b \end{bmatrix}
+	\begin{bmatrix} u \end{bmatrix}
+\end{equation*}
+
+\begin{align*}
+	\Phi(s) = \left[s \mtx{I} - \mtx{A}\right]^{-1} 
+	&= 
+	\frac{1}{s^2 + a_2 s + a_1}
+	\begin{bmatrix} a_2 + s & 1 \\ -a_1 & s  
+	\end{bmatrix}
+	\\
+	\Phi(s) \mtx{B} 
+	&= 
+	\frac{1}{s^2 + a_2 s + a_1}
+	\begin{bmatrix} b \\ bs  
+	\end{bmatrix}
+\end{align*}
+
+\begin{align*}
+	\mathcal{L}\left\{
+	\frac{1}{s^2 + a_2 s + a_1}
+	\right\}
+	&= \frac{1}{\omega_n \sqrt{1 - \xi^2}} \cdot e^{-\xi \omega_n t} \cdot \sin \left(\sqrt{1 - \xi^2} \omega_n t \right)
+	 \\ 
+	 a_1 &= \omega_n^2 \quad , \quad a_2 = 2\xi \omega_n
+\end{align*}
+
+
+\subsubsection{Ejecución}
+
+
+\subsubsection{Post-procesamiento}
+
+
+
+
+
+\subsection{Modelo}
+
+\subsubsection{Aerodinámica}
+
+
+\subsubsection{Populsión}
+
+
+\subsubsection{Actuadores}
+
+
+\subsubsection{Sensores}
+
+
+
+
+
+
+\subsection{Parametrización}
+
+\paragraph{Parámetros Másicos: \texttt{S\#\_mass.csv}}
+
+Tabla ASCII con filas:
+
+\begin{equation*}
+	m\ ,\ x_{cg}\ ,\ y_{cg}\ ,\ z_{cg}\ ,\ I_x\ ,\ I_y\ ,\ I_z
+\end{equation*}
+
+\paragraph{Masa Expulsable: \texttt{S\#\_mexp.csv}}
+
+Tabla ASCII con una fila:
+
+\begin{equation*}
+	m\ ,\ x_{cg}\ ,\ I_x\ ,\ I_y\ ,\ I_z
+\end{equation*}
+
+\paragraph{Parámetros Elásticos: \texttt{S\#\_flex.csv}}
+
+Tabla ASCII con columnas:
+
+\begin{equation*}
+	m\ ,\ \omega_n\ ,\ \xi\ ,\ \eta_w\ ,\ \eta_q\ ,\ \eta_f\ ,\ y(x_{isa})\ ,\ y'(x_{isa})
+\end{equation*}
+
+\paragraph{Parámetros de Propulsión: \texttt{S\#\_prop.csv}}
+
+Archivo ASCII con una columna:
+
+\begin{tabular}{l | l}
+	$\dot{m}$ & caudal másico \\
+	$p_e$   & presión de escape \\
+	$A_e$   & área de escape \\
+	$x_{gimbal}$ & posición del guimbal (respecto de la proa) \\
+	$\delta_{max}$ & deflexión máxima del TVC \\
+	$p_a[1]$ & valores de presión atmosférica \\
+	$p_a[2]$ & \\
+	$\ \ \vdots$ & \\
+	$p_a[n]$ & \\
+	$v_e[1]$ & valores de velocidad de escape \\
+	$v_e[2]$ & \\
+	$\ \ \vdots$ & \\
+	$v_e[n]$ &  
+\end{tabular}
+
+\paragraph{Parámetros Aerodinámicos: \texttt{S\#\_aero.dat}}
+
+Archivo binario con datos de acuerdo al Apéndice \ref{apnd:aero}.
+
+\subsubsection{Configuración de la FCC}
+
+\paragraph{Plan de Vuelo: \texttt{params.ini}}
+
+Parámetros para configurar el plan de vuelo: 
+
+\begin{lstlisting}[xleftmargin=3cm] 
+
+[times]
+sample     = 0.01
+S1 burn    = 121.1
+S2 burn    = 299.4
+pre-meco   = 2
+S1 coast   = 20
+separation = 1
+S2 fire    = 2
+
+[heights]
+relief = 4
+vaccum = 84
+steer  = 70
+separation = 70
+
+\end{lstlisting}
+
+\paragraph{Control Automático: \texttt{params.ini}}
+
+Ganancias para los lazos de control (\texttt{gains\_S1/gains\_S2}):
+\bigskip
+
+\begin{lstlisting}[xleftmargin=3cm]
+
+[gains_S1]
+pitch_f  = 2
+pitch_g  = 2
+pitch_L  = 0
+pitch_k2 = 0
+pitch_rate_limit = 0.5
+
+roll_f  = 0.01
+roll_g  = 1
+roll_L  = 0
+roll_k2 = 0
+roll_rate_limit = 0.5
+
+\end{lstlisting}
+
+%[gains_S2]
+%pitch_f  = 2
+%pitch_g  = 1
+%pitch_L  = 0.05
+%pitch_k2 = 0
+%pitch_rate_limit = 0.1
+%
+%roll_f  = 1
+%roll_g  = 90
+%roll_L  = 0
+%roll_k2 = 0
+%roll_rate_limit = 0.5
+%\end{lstlisting}
+
+\paragraph{Guiado Activo: \texttt{params.ini}}
+
+Parámetros para el guiado activo (LTG y Terminal):
+
+\begin{lstlisting}[xleftmargin=3cm]
+
+[guidance]
+pre_cycle = 1
+tgo_min   = 4
+v_exit    = 3202
+v_epsilon = 1
+min_sfc   = 0.4
+
+[orbit]
+height      = 180
+inclination = 39
+ascending node = 0
+
+\end{lstlisting}
+
+\subsubsection{Simulación: \texttt{params.ini}}
+
+Parámetros específicos de la simulación:
+
+\begin{lstlisting}[xleftmargin=3cm]
+
+[space port]
+latitud  = -38.467314
+longitud = -58.308232 
+
+[simulation]
+integration time = 0.001
+duration         = 500
+start time       = 10
+launch time      = 30
+model root       = data/S
+export root      = rec/orb_40wx1cm_2st
+wind profile     = data/wind_4.csv
+separation rot   = 4 10 0
+max angular rate = 180
+
+\end{lstlisting}
+
+
+
+
+\end{document}

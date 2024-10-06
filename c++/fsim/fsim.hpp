@@ -36,6 +36,7 @@
 
 namespace dgnc { namespace fsim {
 bool run(const std::string& fpath, bool plot);
+const char* version();
 }}
 
 
