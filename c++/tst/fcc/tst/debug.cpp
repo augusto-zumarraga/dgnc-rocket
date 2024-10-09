@@ -7,7 +7,7 @@
  \brief                                                                         
  \author   Augusto Zumarraga                                                    
  \date     creación: 07/08/2024
- \date     revisión: 09/09/2024
+ \date     revisión: 09/10/2024
  \note     versión : 0.2
 ______________________________________________________________________________*/
 #include "debug.hpp"
@@ -34,6 +34,11 @@ typedef std::runtime_error check_failure;
 //------------------------------------------------------------------------------
 void fcc_loader_t::fill_params(const double* p, unsigned len)
 {
+	m_stage = *p; ++p;
+	if(m_stage < 0 || m_stage > 2)
+		throw check_failure("Invalid stage index");
+	--m_stage;
+
 	fcc.plan().R_orbit                = *p; ++p;
 	fcc.plan().times.sampling         = *p; ++p;
 	fcc.plan().times.s1_burn          = *p; ++p;
@@ -189,12 +194,105 @@ void fcc_loader_t::fill_wire(const double* p, unsigned n)
 	fcc.plan().wire.fill(&wire.front(), wire.size(), fcc.plan().times.sampling);
 }
 
-//------------------------------------------------------------------------------
+//==============================================================================
 fcc_dbg_t::fcc_dbg_t()
-: m_ini_st      (fcc_t::st_init)
+: m_state       (fcc_t::st_init)
+, m_ini_st      (fcc_t::st_init)
 , m_t_launch    (0)
 , m_t_separation(0)
 {}
+void fcc_dbg_t::on_time_step()
+{
+	if(m_ini_st == fcc_t::st_init && ins.elapsed >= m_t_launch)
+    {
+        fcc.arm(ins);
+		trace("launch command");
+		m_ini_st = -1;
+    }
+    else
+	if(m_ini_st > fcc_t::st_init)
+	{
+		fcc.reset(ins, fcc_t::e_states(m_ini_st), m_t_launch, m_t_separation);
+		trace("reset");
+		m_ini_st = -1;
+	}
+	else
+		fcc.on_time(ins);
+	if(m_state != fcc.state_trace())
+	{
+		// reportar cambios de estado
+		m_state = fcc.state_trace();
+		on_state();
+	}
+}
+void fcc_dbg_t::on_state() //second_t T, int st, const sim_info_t& p, logger_t& log)
+{
+    std::stringstream log;
+	//log << "\n\n============================================================\n";
+	//if(T < second_t(0))
+		log << ins.elapsed << "s: STATE ";
+	//else
+	//	log << "T+" << ins.elapsed - T << "s: STATE ";
+	switch(m_state)
+	{
+	case fcc_t::st_init        : log << "init        "; break;
+	case fcc_t::st_armed       : log << "armed       "; break;
+	case fcc_t::st_ascent      : log << "ascent      "; break;
+	case fcc_t::st_load_relief : log << "load_relief "; break;
+	case fcc_t::st_meco        : log << "MECO        "; break;
+	case fcc_t::st_coasting    : log << "coasting    "; break;
+	case fcc_t::st_separation  : log << "separation  "; break;
+	case fcc_t::st_fire_s2     : log << "S2 fire     "; break;
+	case fcc_t::st_gravity_turn: log << "gravity_turn"; break;
+	case fcc_t::st_steering    : log << "steering    "; break;
+	case fcc_t::st_low_thrust  : log << "low_thrust  "; break;
+	case fcc_t::st_engine_off  : log << "engine_off  "; break;
+	case fcc_t::st_orbit       : log << "orbit       "; break;
+	default:
+		log << "steering/";
+		switch(m_state - fcc_t::st_last)
+		{
+		case fcc_t::guide_t::st_init       : log << "init       "; break;
+		case fcc_t::guide_t::st_pre_thrust : log << "pre_thrust "; break;
+		case fcc_t::guide_t::st_pre_cycling: log << "pre_cycling"; break;
+		case fcc_t::guide_t::st_ltg        : log << "LTG        "; break;
+		case fcc_t::guide_t::st_terminal   : log << "terminal   "; break;
+		case fcc_t::guide_t::st_orbit      : log << "orbit      "; break;
+		}
+	}
+	/*
+    {
+		using namespace dgnc::navs;
+		using dgnc::geom::euler;
+		using dgnc::geom::polar;
+
+		eci::state_t si = p.ins;
+		polar lt = orbit(eci::lla_t(si.pos)) << si.vel;
+
+		ned::att_t qned = ecef_to_ned(p.env.lla, p.ins.att);
+		euler eul(qned);
+		eul.normalize(degree(0.1), degree(0.001));
+
+		log << "\n\n"
+		    << "latitud "  << degree(p.env.lla.lat) << ", "
+		    << "longitud " << degree(p.env.lla.lng) << ", "
+		    << "altura "   << p.env.lla.alt * 1e-3 << "km\n"
+		    // no se por que en el namespace anónimo no encuentra << para euler
+		    << "actitud {ϕ,θ,ψ}: " << eul << "\n"
+		    << "velocidad " << lt
+		    ;
+		if(st > fcc_t::st_steering)
+		{
+			orb::elements_t o(orb::state_t(si.pos, si.vel));
+			log << "\norbit: apogeo: " << o.apogee()*1e-3
+					  << " km, e:" << o.eccentricity()
+					  << ", inc:" << degree(o.inclination());
+		}
+	}
+	log << "\n============================================================"
+	    << '\n';
+        */
+}
 void fcc_dbg_t::initial_state(int st, second_t t_launch, second_t t_sep)
 {
 	if(st >= fcc_t::st_init && st <= fcc_t::st_orbit)

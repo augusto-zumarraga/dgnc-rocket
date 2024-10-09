@@ -19,13 +19,6 @@ unsigned time_stamp = 0;
 }
 
 #ifdef MEX_FILE_CHECK
-
-namespace gnc {
-void trace(const char* msg)
-{
-	std::cout << msg << std::endl;
-}
-}
 namespace {
 
 	typedef int int_T;
@@ -486,14 +479,14 @@ static void mdlOutputs(SimStruct *S, int_T tid)
                 *(++o_ptr) = o_fcc.AOs().rc;
             }
             o_ptr = ssGetOutputPortRealSignal(S, 1);
-            if(ssGetOutputPortWidth(S,0) >= fcc_dbg_t::dos_len)
+            if(ssGetOutputPortWidth(S,1) >= fcc_dbg_t::dos_len)
             {
                 *(  o_ptr) = o_fcc.DOs().eng;
                 *(++o_ptr) = o_fcc.DOs().rel;
                 *(++o_ptr) = o_fcc.DOs().sep;
             }
             o_ptr = ssGetOutputPortRealSignal(S, 2);
-            if(ssGetOutputPortWidth(S,0) >= fcc_dbg_t::out_len)
+            if(ssGetOutputPortWidth(S,2) >= fcc_dbg_t::out_len)
                 p_dbg->write_tlmy(o_ptr);
         }
         else
