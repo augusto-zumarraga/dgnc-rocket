@@ -6,7 +6,7 @@
 /// \brief
 /// \author   Augusto Zumarraga
 /// \date     creación: 27/06/2024
-/// \date     revisión: 25/09/2024
+/// \date     revisión: 10/10/2024
 //______________________________________________________________________________
 
 /*
@@ -35,7 +35,7 @@
 using namespace gnc;
 
 //==============================================================================
-flight_t::flight_t() : R_orbit(6570987), m_tm_eci(0)
+flight_t::flight_t() : R_orbit(6570987), m_tm_off(0), m_tm_eci(0)
 {}
 void flight_t::setup(pguid_t& p)
 {
@@ -133,9 +133,15 @@ void fcc_t::ascent_on_entry(const ins_data_t& s)
 }
 void fcc_t::ascent_on_timer(const ins_data_t& s)
 {
-	m_tlmy.q_ref = m_plan.wire(s.elapsed);
-	att_t qwr = ecef_to_ned(s.pos, s.att);
-	m_cntrl_s1.att_loop(m_tlmy.q_ref, qwr, s);
+//	m_tlmy.q_ref = m_plan.wire(s.elapsed);
+//	att_t qwr = ecef_to_ned(s.pos, s.att);
+//	m_cntrl_s1.att_loop(m_tlmy.q_ref, qwr, s);
+//	if(m_plan.do_relief(s.lla.alt))
+//		set_state(state_load_relief, s);
+
+	direction dir = m_plan.wire(s.vel.norm());
+	m_tlmy.e_dir = s.att >> dir;
+	m_cntrl_s1.pointing_loop(m_tlmy.e_dir, s);
 	if(m_plan.do_relief(s.lla.alt))
 		set_state(state_load_relief, s);
 }
@@ -143,8 +149,9 @@ void fcc_t::ascent_on_timer(const ins_data_t& s)
 //------------------------------------------------------------------------------
 void fcc_t::load_relief_on_timer(const ins_data_t& s)
 {
-	m_tlmy.q_ref = m_plan.wire(s.elapsed);
-	m_cntrl_s1.load_relief(m_tlmy.q_ref, s);
+	direction dir = m_plan.wire(s.vel.norm());
+	m_tlmy.e_dir = s.att >> dir;
+	m_cntrl_s1.pointing_loop(m_tlmy.e_dir, s);
     if(m_plan.start_meco_maneuver(s.elapsed))
 		set_state(state_meco, s);
 }
@@ -171,14 +178,10 @@ void fcc_t::meco_on_exit(const ins_data_t& s)
 void fcc_t::coasting_on_entry(const ins_data_t& s)
 {
 	m_alarm.set(s.elapsed + m_plan.s1_coast_time());
-	//m_cntrl_s1.stop_rotation();
 }
 void fcc_t::coasting_on_timer(const ins_data_t& s)
 {
 	m_cntrl_s1.roll_loop(s);
-//	m_cntrl_s2.start(s.elapsed);
-//	m_cntrl_s2.roll_loop(s);
-//	m_cntrl_s1.cmnd().rc = m_cntrl_s2.cmnd().rc;
 	if(m_alarm(s.elapsed) || m_plan.do_separation(s.lla.alt))
 		set_state(state_separation, s);
 }

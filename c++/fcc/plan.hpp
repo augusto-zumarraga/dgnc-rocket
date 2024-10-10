@@ -71,7 +71,8 @@ public:
 
 	} params;
 
-	t_schedule<att_t, N1> wire;
+	//t_schedule<att_t, N1> wire;
+	t_interp <vector, N1> wire; //_v;
 
 	flight_t();
 	bool separation_completed(second_t elps) const { return (elps - m_tm_sep) > times.separation_time; }
@@ -81,14 +82,14 @@ protected:
 	friend class fcc_t;
 
 	void setup(pguid_t&);
-	void start(second_t tm) { wire.set_offset(tm); }
+	void start(second_t tm) { m_tm_off = tm; } //wire.set_offset(tm); }
 
 	second_t      time_offset()              const { return m_tm_eci; }
 	second_t    s1_coast_time()              const { return times.s1_coast_time; }
 	second_t  separation_time()              const { return times.separation_time; }
 	second_t    s2_fire_delay()              const { return times.s2_fire_delay; }
 	second_t     meco_advance()              const { return times.meco_advance; }
-	bool  start_meco_maneuver(second_t elps) const { return (elps - wire.time_offset()) >= times.s1_burn - times.meco_advance; }
+	bool  start_meco_maneuver(second_t elps) const { return (elps - m_tm_off) >= times.s1_burn - times.meco_advance; }
 	void     start_separation(second_t elps)       { m_tm_sep = elps; }
 	bool             s1_fired(double fx)     const { return fx  > wgs84::go * 1.1; }
 	bool             s2_fired(double fx)     const { return fx  > params.f_min; }
@@ -97,7 +98,7 @@ protected:
 	bool           do_release(float hgt)     const { return hgt > params.hgt_void; }
 	bool            do_relief(float hgt)     const { return hgt > params.hgt_relief; }
 
-	second_t m_tm_eci, m_tm_sep;
+	second_t m_tm_off, m_tm_eci, m_tm_sep;
 };
 
 }

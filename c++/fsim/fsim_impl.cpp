@@ -66,6 +66,16 @@ void fsim::exec_t::update(const dgnc::fsim::sim_info_t& sim, gnc::ins_data_t& in
 		ins.sfc += sim.flx.sfc;
 		ins.att  = ins.att * sim.flx.att;
 	}
+	if(i_g_noise < i_g_end)
+	{
+		ins.wbi += *i_g_noise;
+		++i_g_noise;
+	}
+	if(i_f_noise < i_f_end)
+	{
+		ins.sfc += *i_f_noise;
+		++i_f_noise;
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -154,7 +164,6 @@ void fsim::exec_t::on_state(second_t T, int st, const sim_info_t& p, logger_t& l
 		    << "latitud "  << degree(p.env.lla.lat) << ", "
 		    << "longitud " << degree(p.env.lla.lng) << ", "
 		    << "altura "   << p.env.lla.alt * 1e-3 << "km\n"
-		    // no se por que en el namespace anónimo no encuentra << para euler
 		    << "actitud {ϕ,θ,ψ}: " << eul << "\n"
 		    << "velocidad " << lt
 		    ;

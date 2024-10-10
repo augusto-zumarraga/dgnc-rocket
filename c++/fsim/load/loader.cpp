@@ -118,7 +118,7 @@ fcc_loader_t::fcc_loader_t(std::string fpath)
 	if(!fpath.empty() && fpath.back() != '/')
 		fpath += '/';
 	import_params(   (fpath + "params.ini"  ).c_str());
-	import_wire  (   (fpath + "wire.csv"    ).c_str());
+	import_wire  (   (fpath + "wire_v.csv"    ).c_str());
 	import_gains (0, (fpath + "gains_S1.csv").c_str());
 	import_gains (1, (fpath + "gains_S2.csv").c_str());
 }
@@ -180,6 +180,7 @@ void fcc_loader_t::import_params(const char* fname)
 	navs::ecef::lla_t launch_nav(0,0,15);
 	launch_nav.lat = degree(atof(f.branch("space port.latitud" ).get().c_str()));
 	launch_nav.lng = degree(atof(f.branch("space port.longitud").get().c_str()));
+	radian hdg  = degree(atof(f.branch("space port.heading" ).get().c_str()));
 	if(launch_nav.lat < degree(-50) || launch_nav.lat > degree(50) )
 		throw check_failure("Invalid launch lattitude");
 	if(launch_nav.lng < degree(-180) || launch_nav.lng > degree(180) )
@@ -204,6 +205,7 @@ void fcc_loader_t::import_params(const char* fname)
 	m_launch_state.elapsed = 0;
 	m_launch_state.pos = launch_nav;
 	m_launch_state.vel = vector(0,0,0);
+	m_launch_state.att = ned_to_ecef(m_launch_state.pos, ned::att_t(0,radian::_90deg,hdg));
 
 	// Control
 	read_gains(f, m_f_gains[0].roll, m_s1_roll, 1, true );
@@ -211,7 +213,7 @@ void fcc_loader_t::import_params(const char* fname)
 	read_gains(f, m_f_gains[1].roll, m_s2_roll, 2, true );
 	read_gains(f, m_f_gains[1].ptch, m_s2_ptch, 2, false);
 }
-
+/*
 void fcc_loader_t::import_wire(const char* fname)
 {
 	ctx_t ctx = fname;
@@ -326,6 +328,33 @@ void fcc_loader_t::import_wire(const char* fname)
 	}
 	m_launch_state.att = ned_to_ecef(m_launch_state.pos, m_wire.front());
 }
+*/
+void fcc_loader_t::import_wire(const char* fname)
+{
+	ctx_t ctx = fname;
+	csv::table_t tbl = csv::read(fname, ' ');
+	assert(tbl.size() >= 5);
+
+	unsigned N = tbl.at(0).size();
+
+	const csv::column_t& U = tbl.at(1);
+	const csv::column_t& u = tbl.at(2);
+	const csv::column_t& v = tbl.at(3);
+	const csv::column_t& w = tbl.at(4);
+
+	m_wire.range.resize(0);
+	m_wire.range.resize(0);
+	m_wire.data.reserve(N);
+	m_wire.data.reserve(N);
+
+	for( csv::column_t::const_iterator ir = U.begin(), er = U.end()
+	   , iu = u.begin(), iv = v.begin(), iw = w.begin()
+	   ; ir < er; ++ir, ++iu, ++iv, ++iw)
+	{
+		m_wire.range.push_back(*ir);
+		m_wire.data .push_back(vector(*iu, *iv, *iw));
+	}
+}
 
 void fcc_loader_t::import_gains(unsigned stage, const char* fname)
 {
@@ -413,7 +442,8 @@ void fcc_loader_t::setup(gnc::fcc_t& f) const
 	f.plan().R_orbit = m_orbit.radius();
 	f.plan().times   = m_times;
 	f.plan().params  = m_params;
-	f.plan().wire    .fill(m_wire.begin(), m_wire.size(), m_times.sampling);
+	//f.plan().wire    .fill(m_wire.begin(), m_wire.size(), m_times.sampling);
+	f.plan().wire.fill(m_wire.range.begin(), m_wire.data.begin(), m_wire.range.size());
 
 	f.ctrl_s1().tvc().setup(m_times.sampling, m_s1_ptch, m_gains[0].ptch.g);
 	f.ctrl_s1().fin().setup(m_times.sampling, m_s1_roll, m_gains[0].roll.g);

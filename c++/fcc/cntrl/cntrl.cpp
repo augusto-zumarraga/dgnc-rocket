@@ -134,6 +134,15 @@ void ctrl_t::update(tlmy_t& s) const
 {
 	s.w_ref = m_w_ref;
 }
+void ctrl_t::pointing_loop(const ins_data_t& ins, const vector& rx, double g)
+{
+	double ey =  atan2( rx.y(), rx.x()); math::sat(ey, 0.1);
+	double ep = -atan2( rx.z(), rx.x()); math::sat(ep, 0.1);
+	m_w_ref.y() = g * ep;
+	m_w_ref.z() = g * ey;
+	m_tvc.cloop(ins, m_w_ref.y(), m_w_ref.z());
+    m_tvc.update(m_cmnd);
+}
 
 //------------------------------------------------------------------------------
 void atm_t::roll_loop(const ins_data_t& ins)
@@ -166,6 +175,13 @@ void atm_t::att_loop(const quaternion& qref, const quaternion& qatt, const ins_d
     m_tvc.cloop(ins, m_w_ref.y(), m_w_ref.z());
     m_tvc.update(m_cmnd);
 }
+void atm_t::pointing_loop(const vector& rx, const ins_data_t& ins)
+{
+	ctrl_t::pointing_loop(ins, rx, py_gains(ins.elapsed));
+	m_w_ref.x() = 0;
+    m_fin.cloop(ins, m_w_ref.x());
+    m_fin.update(m_cmnd);
+}
 void atm_t::load_relief(const att_t& qref, const ins_data_t& ins)
 {
 	att_t qwr = ecef_to_ned(ins.pos, ins.att);
@@ -196,17 +212,18 @@ void exo_t::roll_loop(const ins_data_t& ins)
 }
 void exo_t::pointing_loop(const vector& rx, const ins_data_t& ins)
 {
-	double ey =  atan2( rx.y(), rx.x()); math::sat(ey, 0.1);
-	double ep = -atan2( rx.z(), rx.x()); math::sat(ep, 0.1);
-	m_w_ref.x() = 0;
-	double g = py_gains(ins.elapsed);
-	m_w_ref.y() = g * ep;
-	m_w_ref.z() = g * ey;
+//	double ey =  atan2( rx.y(), rx.x()); math::sat(ey, 0.1);
+//	double ep = -atan2( rx.z(), rx.x()); math::sat(ep, 0.1);
+//	double g = py_gains(ins.elapsed);
+//	m_w_ref.y() = g * ep;
+//	m_w_ref.z() = g * ey;
+//	m_tvc.cloop(ins, m_w_ref.y(), m_w_ref.z());
+//  m_tvc.update(m_cmnd);
 
+	ctrl_t::pointing_loop(ins, rx, py_gains(ins.elapsed));
+	m_w_ref.x() = 0;
     m_rcs.cloop(ins, m_w_ref.x());
     m_rcs.update(m_cmnd);
-	m_tvc.cloop(ins, m_w_ref.y(), m_w_ref.z());
-    m_tvc.update(m_cmnd);
 }
 void exo_t::start(second_t elps)
 {

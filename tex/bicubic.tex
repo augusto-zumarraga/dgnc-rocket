@@ -2,8 +2,61 @@
 
 \begin{document}
 
-\subsection{Interpolación Bi-cúbica}
 
+\subsection{Interpolación Cúbica}
+
+\begin{align*}
+	v(x_k + \eta l_k) &= 
+	 \begin{bmatrix} 
+	  	a_k & b_k & c_k & d_k  
+	  \end{bmatrix}
+	  \begin{bmatrix} 1 \\ \eta \\ \eta^2 \\ \eta^3 \end{bmatrix}
+	  \\
+	v'(x + \eta l_k) &=  \begin{bmatrix} 
+	  	b_k & 2 c_k &  3 d_k 
+	  \end{bmatrix}
+	  \begin{bmatrix} 1 \\ \eta \\ \eta^2 \end{bmatrix}
+	  \\
+	v''(x + \eta l_k) &=  \begin{bmatrix} 
+	  	2c_k &  6 d_k 
+	  \end{bmatrix}
+	  \begin{bmatrix} 1 \\ \eta \end{bmatrix}
+\end{align*}
+donde $x_k$ es la posición del nodo $k$, $\eta \in [0:1)$ y $l_k = x_{k+1} - x_{k}$
+
+Al empalmar dos cúbicas $\mathcal{C}^1$ y $\mathcal{C}^2$ deben coincidir los valores y derivadas en el nodo $x_1 = l_1, x_2 = 0$:
+\begin{align*}
+	                  a_k &= v(x_k) \\
+	a_k + b_k + c_k + d_k &= v(x_{k+1}) \ \,  \rightarrow \qquad \qquad \ b_k + c_k + d_k = v(x_{k+1}) - v(x_k)  	\\
+	  b_k + 2 c_k + 3 d_k &= b_{k+1} \qquad    \rightarrow  b_k + 2 c_k + 3 d_k - 2 b_{k+1} = 0
+	 %  2 c_k + 6 d_k &= 2c_{k+1} \qquad    \rightarrow  2 c_k + 6 d_k - 2 c_{k+1} = 0
+\end{align*}
+Definiendo valor y derivada en los extremos para $n$ puntos se obtiene un sistema de $2(n-1)$ ecuaciones con igual cantidad de incógnitas:
+\begin{equation*}
+	\begin{bmatrix} 
+	  	1 & 1 & 1 & \phantom{-}0 & \phantom{-}0 & 0 & \phantom{-}0 & \phantom{-}0 \cdots & 0 \\   
+	  	1 & 2 & 3 &           -1 & \phantom{-}0 & 0 & \phantom{-}0 & \phantom{-}0 \cdots & 0 \\   
+	  	0 & 2 & 6 & \phantom{-}0 &           -2 & 0 & \phantom{-}0 & \phantom{-}0 \cdots & 0 \\   
+	  	0 & 0 & 0 & \phantom{-}1 & \phantom{-}1 & 1 & \phantom{-}0 & \phantom{-}0 \cdots & 0 \\   
+	  	0 & 0 & 0 & \phantom{-}1 & \phantom{-}2 & 3 &           -1 & \phantom{-}0 \cdots & 0 \\
+	  	0 & 0 & 0 & \phantom{-}0 & \phantom{-}2 & 6 & \phantom{-}0 &           -2 \cdots & 0 \\
+	  	\vdots & \vdots & \vdots & \phantom{-}\vdots & \phantom{-}\vdots & \vdots & \vdots & \vdots & 0 \\
+	\end{bmatrix}
+	\begin{bmatrix} 
+	  	b_1 \\ c_1 \\ d_1 \\   
+	  	b_2 \\ c_2 \\ d_2  \\ \vdots  \\ 
+	  	b_n \\ c_n \\ d_n 
+	\end{bmatrix}
+	= \begin{bmatrix} 
+	  	v_2 - v_1 \\ 0 \\ 0 \\ v_3 - v_2 \\ 0 \\ 0 \\ \vdots  \\ v_{n+1} - v_{n} \\ 0 \\ 0 
+	  \end{bmatrix}
+\end{equation*}
+
+
+
+
+
+\subsection{Interpolación Bi-cúbica}
 
 \begin{align*}
 	v(x,y) &= \sum_{i=0}^3\sum_{j=0}^3 a_{ij}x^i y^j 

@@ -94,6 +94,11 @@ protected:
 	double tsim, toff, tlaunch, tint, w_max;
 	std::string  mdl_s1, mdl_s2, pln, exp, wind;
 	navs::angle_rate_t sep_rot;
+
+	std::vector<angle_rate_t> gyro_noise;
+	std::vector<     force_t> acel_noise;
+	std::vector<angle_rate_t>::const_iterator i_g_noise, i_g_end;
+	std::vector<     force_t>::const_iterator i_f_noise, i_f_end;
 };
 
 //------------------------------------------------------------------------------

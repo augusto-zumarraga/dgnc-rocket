@@ -30,10 +30,10 @@ state_engine_off
 state_orbit
 --
 arm(ins_data_t)
+abort(ins_data_t)
 on_time(ins_data_t)
 update_tlmy()
 time_to_launch(second_t):second_t
- 
 
 </panel_attributes>
     <additional_attributes/>

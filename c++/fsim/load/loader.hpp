@@ -88,7 +88,12 @@ public:
 	typedef flight_t::params_t params_t;
 	typedef ctrl::st_params_t  cparams_t;
 	typedef dgnc::navs::orb::circular_t orbit_t;
-	typedef std::vector<gnc::att_t> wire_t;
+	//typedef std::vector<gnc::att_t> wire_t;
+	struct wire_t
+	{
+		std::vector<float> range;
+		std::vector<dgnc::geom::vector> data;
+	};
 
 	// En <path>
 	//

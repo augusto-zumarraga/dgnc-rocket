@@ -34,20 +34,28 @@ grid on;
 ylabel('[⁰]');
 legend('show','AutoUpdate','off');
 
-eul = to_euler(gnc.q_ref(rng,:))*180/pi;
-plot(t, eul, '-.k');   
+% eul = to_euler(gnc.q_ref(rng,:))*180/pi;
+% plot(t, eul, '-.k');   
 
-subplot(3,3,4); 
-eul = to_euler(gnc.q_err(rng,:))*180/pi;
-plot(t, eul, 'LineWidth', line_width);   
-grid on;
-legend('e_ϕ', 'e_θ', 'e_ψ'); 
-ylabel('Euler error [⁰]');
+% subplot(3,3,4); 
+% eul = to_euler(gnc.q_err(rng,:))*180/pi;
+% plot(t, eul, 'LineWidth', line_width);   
+% grid on;
+% legend('e_ϕ', 'e_θ', 'e_ψ'); 
+% ylabel('Euler error [⁰]');
 
 subplot(3,3,7); 
-plot(t, acosd(gnc.q_err(rng,1))*2, 'LineWidth', line_width); %, 'Color', clr); 
+% plot(t, acosd(gnc.q_err(rng,1))*2, 'LineWidth', line_width); %, 'Color', clr); 
+% grid on;
+% ylabel('quaternion error angle [⁰]');
+
+plot(t, atan2d(gnc.e_dir(rng,2:3), gnc.e_dir(rng,1)), 'LineWidth', line_width); %, 'Color', clr); 
 grid on;
-ylabel('quaternion error angle [⁰]');
+legend('y^b', 'z^b');
+ylabel('pointing error [⁰]');
+%ylim([-1 1])
+
+
 
 subplot(3,3,2); 
 plot(t, gnc.w_err(rng,:), 'LineWidth', line_width); 

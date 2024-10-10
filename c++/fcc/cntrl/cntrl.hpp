@@ -198,6 +198,8 @@ public:
 
 protected:
 
+	void pointing_loop(const ins_data_t& ins, const vector& rx, double g);
+
 	angle_rate_t  m_w_ref; ///< referencia para la velocidad angular
 	cmnds::cont_t m_cmnd;
 	  tvc_yz_t    m_tvc;
@@ -225,6 +227,8 @@ public:
 	void att_loop(const quaternion& r, const quaternion& q, const ins_data_t& ins);
 	/// \return referencia de velocidad angular
 	void load_relief(const  att_t& qr, const ins_data_t& ins);
+	/// \param rx dirección deseada del eje x en terna b
+	void pointing_loop(const vector& rx, const ins_data_t& ins);
 
 	roll_fin_t& fin() { return m_fin; }
 

@@ -65,6 +65,7 @@ dgnc::fsim::exec_t::exec_t(std::string fpath)
 	mdl_s2 = f.branch("simulation.stage_2"     ).get();
 	exp    = f.branch("simulation.export root" ).get();
 	wind   = f.branch("simulation.wind profile").get();
+
 	w_max  = math::d2r(atof(f.branch("simulation.max angular rate").get().c_str()));
 
 	if( mdl.empty())
@@ -89,11 +90,43 @@ dgnc::fsim::exec_t::exec_t(std::string fpath)
 		sep_rot.y() = math::d2r(q);
 		sep_rot.z() = math::d2r(r);
 	}
-
 	if(!tsim)
 		tsim = 500;
 	if(!tint)
 		tint = 0.001;
+
+	gyro_noise.clear();
+	acel_noise.clear();
+
+	std::string
+	fname = f.branch("simulation.gyro noise").get();
+	if(!fname.empty())
+	{
+		gyro_noise.reserve(tsim/0.01);
+		std::ifstream f(fname);
+		while(!f.fail())
+		{
+			double u, v, w;
+			f >> u;
+			f >> v;
+			f >> w;
+			gyro_noise.push_back(angle_rate_t(u,v,w));
+		}
+	}
+	fname = f.branch("simulation.acel noise").get();
+	if(!fname.empty())
+	{
+		acel_noise.reserve(tsim/0.01);
+		std::ifstream f(fname);
+		while(!f.fail())
+		{
+			double u, v, w;
+			f >> u;
+			f >> v;
+			f >> w;
+			acel_noise.push_back(force_t(u,v,w));
+		}
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -138,6 +171,11 @@ bool dgnc::fsim::exec_t::operator()(bool do_plot)
 	sim_rec.reserve(N);
 	fcc_rec.reserve(N);
 	sim.push(0, rckt.xo);
+
+	i_g_noise = gyro_noise.begin();
+	i_g_end   = gyro_noise.end();
+	i_f_noise = acel_noise.begin();
+	i_f_end   = acel_noise.end();
 
 	int st = FCC.state_trace();
 	//________________________________________________________________ SIM Loop
